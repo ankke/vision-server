@@ -9,6 +9,8 @@ verify_ssl = true
 flask = "*"
 sqlite3 = "*"
 simplejson = "*"
+opencv-python = "*"
+flask-sqlalchemy = "*"
 
 [requires]
 python_version = "3.8"
