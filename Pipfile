@@ -7,8 +7,13 @@ verify_ssl = true
 
 [packages]
 flask = "*"
-sqlite3 = "*"
 simplejson = "*"
+flask-sockets = "*"
+eventlet = "*"
+flask-socketio = "*"
+gevent = "*"
+opencv-python = "*"
+websockets = "*"
 
 [requires]
-python_version = "3.8"
+python_version = "*"
