@@ -1,3 +1,4 @@
+import base64
 import os
 from threading import Thread, RLock, Condition
 
@@ -78,3 +79,8 @@ def gen(cam):
         frame = cam.get_frame()
         if frame is not None:
             yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+
+
+def encode_in_base64(frame):
+    frame = base64.b64encode(frame).decode('utf-8')
+    return "data:image/jpeg;base64,{}".format(frame)

@@ -1,5 +1,6 @@
 import simplejson
 from flask import Flask, request, Response
+from flask_socketio import SocketIO
 
 from database import AlchemyEncoder
 from database_operations import edit_camera, add_camera, delete_camera
@@ -7,6 +8,7 @@ from models import Camera
 from request_handler import refresh_handler, photo_handler, pano_handler, stop_live_feed, live_feed
 
 app = Flask(__name__)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 
 @app.route('/')
@@ -27,7 +29,12 @@ def delete():
 
 @app.route('/cameras/show')
 def show():
-    return live_feed(request.args.get('id'))
+    socketio.emit(
+        'sendFrame',
+        {
+            'image': live_feed(request.args.get('id'))
+        }, namespace='/web')
+    return Response()
 
 
 @app.route('/cameras/refresh')
@@ -62,5 +69,16 @@ def edit():
     return Response()
 
 
+@socketio.on('connect', namespace='/web')
+def connect_web():
+    print('[INFO] Web client connected: {}'.format(request.sid))
+
+
+@socketio.on('disconnect', namespace='/web')
+def disconnect_web():
+    print('[INFO] Web client disconnected: {}'.format(request.sid))
+
+
 if __name__ == '__main__':
-    app.run()
+    print("start")
+    socketio.run(app=app, host='127.0.0.1', port=5000)
