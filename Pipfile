@@ -12,6 +12,8 @@ simplejson = "*"
 opencv-python = "*"
 flask-sqlalchemy = "*"
 flask-socketio = "*"
+gevent = "*"
+gevent-websocket = "*"
 
 [requires]
 python_version = "3.8"
