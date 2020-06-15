@@ -5,7 +5,7 @@ from flask import Response
 
 from database import db_session
 from models import Camera
-from video import active_cameras, VideoCamera, encode_in_base64, gen
+from video import active_cameras, VideoCamera, gen
 
 
 def live_feed(id):
@@ -14,7 +14,7 @@ def live_feed(id):
     try:
         camera = VideoCamera(camera)
         active_cameras[id] = camera
-        return encode_in_base64(gen(camera))
+        return gen(camera)
 
         # return Response(gen(camera), content_type="multipart/x-mixed-replace;boundary=frame")
     except ConnectionError:

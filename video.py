@@ -36,8 +36,10 @@ class VideoCamera(object):
 
     def get_frame(self):
         frame = self.frame
-        _, jpeg = cv2.imencode('.jpg', frame)
-        return jpeg.tobytes()
+        if frame is not None:
+            _, jpeg = cv2.imencode('.jpg', frame)
+            return jpeg.tobytes()
+        return None
 
     def update(self):
         while self.live:
@@ -69,16 +71,29 @@ class VideoCamera(object):
             else:
                 os.environ['OPENCV_FFMPEG_CAPTURE_OPTIONS'] = 'rtsp_transport;tcp'
                 print("establishing tcp connection for %s %s" % (self.camera.name, self.final_url))
-            self.video = cv2.VideoCapture(self.final_url)
+            self.video = cv2.VideoCapture("/home/krisolew/Downloads/MOV_0970.mp4")  # int(self.final_url))
             print("connected %s %s" % (self.camera.name, self.final_url))
             self.video.set(cv2.CAP_PROP_BUFFERSIZE, 6)
+
+
+class StreamArray(list):
+    def __init__(self, cam):
+        super().__init__()
+        self.cam = cam
+
+    def __iter__(self):
+        return gen(self.cam)
+
+    def __len__(self):
+        return 1
 
 
 def gen(cam):
     while True:
         frame = cam.get_frame()
         if frame is not None:
-            yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+            yield encode_in_base64(frame)
+            # yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
 
 def encode_in_base64(frame):
