@@ -1,3 +1,5 @@
+import logging
+
 import simplejson
 from flask import Flask, request, Response
 
@@ -5,8 +7,10 @@ from database import AlchemyEncoder
 from database_operations import edit_camera, add_camera, delete_camera
 from models import Camera
 from request_handler import refresh_handler, photo_handler, pano_handler, stop_live_feed, live_feed
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 
 @app.route('/')

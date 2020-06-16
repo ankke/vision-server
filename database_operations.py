@@ -17,7 +17,7 @@ def edit_camera(json):
 
 def delete_camera(id):
     try:
-        cam = Camera.query.filter_by(id=id).one()
+        cam = db_session.query(Camera).filter_by(id=id).one()
         db_session.delete(cam)
         db_session.commit()
     except NoResultFound:

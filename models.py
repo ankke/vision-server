@@ -4,7 +4,7 @@ from database import Base
 
 
 class Camera(Base):
-    __tablename__ = 'camera_camera'
+    __tablename__ = 'cameras'
     id = Column(Integer, primary_key=True)
     name = Column(String(25), default=' ')
     url = Column(String(100), default=' ')
