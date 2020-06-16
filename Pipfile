@@ -13,6 +13,9 @@ flask-sqlalchemy = "*"
 sqlalchemy = "*"
 aiortc = "*"
 flask-cors = "*"
+flask-socketio = "*"
+gevent = "*"
+gevent-websocket = "*"
 
 [requires]
 python_version = "3.8"

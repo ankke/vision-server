@@ -5,15 +5,18 @@ from flask import Response
 
 from database import db_session
 from models import Camera
-from video import gen, active_cameras, VideoCamera
+from video import active_cameras, VideoCamera, gen
 
 
 def live_feed(id):
     camera = Camera.query.filter_by(id=id).first()
+
     try:
         camera = VideoCamera(camera)
         active_cameras[id] = camera
-        return Response(gen(camera), content_type="multipart/x-mixed-replace;boundary=frame")
+        return gen(camera)
+
+        # return Response(gen(camera), content_type="multipart/x-mixed-replace;boundary=frame")
     except ConnectionError:
         print("closing tab")
         camera.kill()
@@ -57,4 +60,3 @@ def pano_handler(id):
     if cam is not None:
         cam.save_frame()
     return Response()
-
