@@ -19,7 +19,6 @@ class VideoCamera(object):
         self.connect()
         _, self.frame = self.video.read()
         print("starting thread for %s %s" % (self.camera.name, self.final_url))
-        # self.update1()
         self.live = True
         self.thread = Thread(target=self.update, args=())
         self.thread.start()
@@ -32,7 +31,7 @@ class VideoCamera(object):
     def save_frame(self, timestamp):
         print("saving photo_%s" % str(timestamp))
         frame = self.frame
-        cv2.imwrite("/home/anke/Desktop/photos/photo%s.png" % str(timestamp), frame)
+        cv2.imwrite("./photos/photo%s.png" % str(timestamp), frame)
 
     def get_frame(self):
         frame = self.frame
@@ -71,7 +70,7 @@ class VideoCamera(object):
             else:
                 os.environ['OPENCV_FFMPEG_CAPTURE_OPTIONS'] = 'rtsp_transport;tcp'
                 print("establishing tcp connection for %s %s" % (self.camera.name, self.final_url))
-            self.video = cv2.VideoCapture("/home/krisolew/Downloads/MOV_0970.mp4")  # int(self.final_url))
+            self.video = cv2.VideoCapture(self.final_url)
             print("connected %s %s" % (self.camera.name, self.final_url))
             self.video.set(cv2.CAP_PROP_BUFFERSIZE, 6)
 
@@ -92,8 +91,7 @@ def gen(cam):
     while True:
         frame = cam.get_frame()
         if frame is not None:
-            # yield encode_in_base64(frame)
-            yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+            yield b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n'
 
 
 def encode_in_base64(frame):

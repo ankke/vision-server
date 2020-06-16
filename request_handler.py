@@ -28,7 +28,7 @@ def stop_live_feed(id):
     cam = active_cameras.get(id)
     if cam is not None:
         cam.kill()
-    active_cameras.pop(id)
+        active_cameras.pop(id)
     del cam
     return Response()
 

@@ -11,9 +11,6 @@ from video import gen, VideoCamera, active_cameras
 
 app = Flask(__name__)
 CORS(app)
-
-
-app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 
@@ -35,23 +32,11 @@ def delete():
 
 @app.route('/cameras/show')
 def show():
-    camera = Camera.query.filter_by(id=request.args.get('id')).first()
-    # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # client_socket.connect(('localhost', 5000))
-
+    id = request.args.get('id')
+    camera = Camera.query.filter_by(id=id).first()
     try:
         camera = VideoCamera(camera)
         active_cameras[id] = camera
-        # for video_frame in gen(camera):
-        #     # client_socket.sendall(video_frame)
-        #     socketio.emit('sendFrame', {'image': video_frame}, namespace='/web')
-        # return Response()
-        # socketio.emit(
-        #     'sendFrame',
-        #     {
-        #         'image': live_feed(request.args.get('id'))
-        #     }, namespace='/web')
-
         return Response(gen(camera), content_type="multipart/x-mixed-replace;boundary=frame")
     except ConnectionError:
         print("closing tab")
