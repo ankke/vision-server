@@ -1,22 +1,38 @@
 import simplejson
 from flask import Flask, request, Response
+from flask_cors import CORS
 from flask_socketio import SocketIO
 
 from database import AlchemyEncoder
-from database_operations import edit_camera, add_camera, delete_camera
-from models import Camera
-from flask_cors import CORS
+from database_operations import edit_camera, add_camera, delete_camera, get_cameras_for_configuration, get_configuration
+from models import Camera, Configuration
 from request_handler import refresh_handler, photo_handler, pano_handler, stop_live_feed
 from video import gen, VideoCamera, active_cameras
 
 app = Flask(__name__)
 CORS(app)
+
+app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 
 @app.route('/')
 def hello_world():
     return "Hello world"
+
+
+@app.route('/configurations')
+def get_configurations():
+    return simplejson.dumps(Configuration.query.all(), cls=AlchemyEncoder)
+
+
+@app.route('/configurations/byId')
+def get_configuration_by_id():
+    id = request.args.get("id")
+    name = {"name": get_configuration(id).name}
+    cameras = get_cameras_for_configuration(id)
+    cameras.insert(0, name)
+    return simplejson.dumps(cameras, cls=AlchemyEncoder)
 
 
 @app.route('/cameras')
