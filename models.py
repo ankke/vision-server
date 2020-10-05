@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from sqlalchemy.orm import relationship
 
 from database import Base
 
@@ -14,15 +15,17 @@ class Camera(Base):
     udp_supported = Column(Boolean())
     ptz_app = Column(Boolean())
     enabled = Column(Boolean())
+    configurations = relationship("Camera_Configuration", cascade="all,delete")
 
 
 class Configuration(Base):
     __tablename__ = 'configurations'
     id = Column(Integer, primary_key=True)
     name = Column(String(25), default=' ')
+    cameras = relationship("Camera_Configuration", cascade="all,delete")
 
 
 class Camera_Configuration(Base):
     __tablename__ = 'cameras_configurations'
-    camera_id = Column(Integer, primary_key=True)
-    configuration_id = Column(Integer, primary_key=True)
+    camera_id = Column(Integer, ForeignKey('camera_camera.id'), primary_key=True)
+    configuration_id = Column(Integer, ForeignKey('configurations.id'), primary_key=True)
