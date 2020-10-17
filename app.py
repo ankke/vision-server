@@ -1,97 +1,116 @@
+import json
+
 import simplejson
 from flask import Flask, request, Response
 from flask_cors import CORS
 from flask_socketio import SocketIO
 
-from database import AlchemyEncoder
-from database_operations import get_cameras_for_configuration, add_camera_to_database, edit_camera_in_database, \
-    get_camera_from_database, add_configuration_to_database, get_configuration_from_database, \
-    delete_camera_from_database, delete_configuration_from_database, edit_configuration_in_database
-from models import Camera, Configuration
-from request_handler import refresh_handler, photo_handler, pano_handler, stop_live_feed
-from video import gen, VideoCamera, active_cameras
+from database.encoder import AlchemyEncoder
+from database.operations import (
+    get_cameras_for_configuration,
+    add_camera,
+    edit_camera,
+    get_camera_by_id,
+    add_configuration,
+    get_configuration_by_id,
+    delete_camera,
+    delete_configuration,
+    edit_configuration,
+    get_all_cameras,
+    get_all_configurations,
+)
+from video.helpers import photo_handler, pano_handler, stop_live_feed
+from video.video import VideoCamera, active_cameras, gen
 
 app = Flask(__name__)
-
 socketio = SocketIO(app, cors_allowed_origins="*")
 CORS(app)
 
 
-@app.route('/health_check')
-def hello_world():
-    return "Hello world"
+@app.route("/health_check")
+def health_check():
+    return "Healthy"
 
 
-@app.route('/camera', methods=['GET'])
+@app.route("/camera", methods=["GET"])
 def get_camera():
-    camera = get_camera_from_database(request.args.get('id'))
+    camera = get_camera_by_id(request.args.get("id"))
     return simplejson.dumps(camera, cls=AlchemyEncoder)
 
 
-@app.route('/camera', methods=['POST'])
-def add_camera():
-    new_camera = add_camera_to_database(request.json)
+@app.route("/camera", methods=["POST"])
+def add_camera_():
+    new_camera = add_camera(request.json)
     return simplejson.dumps(new_camera, cls=AlchemyEncoder)
 
 
-@app.route('/camera', methods=['DELETE'])
+@app.route("/camera", methods=["DELETE"])
 def delete_camera():
-    delete_camera_from_database(request.args.get('id'))
+    delete_camera(request.args.get("id"))
     return Response()
 
 
-@app.route('/camera', methods=['PUT'])
+@app.route("/camera", methods=["PUT"])
 def edit_camera():
-    edit_camera_in_database(request.json)
+    edit_camera(request.json)
     return Response()
 
 
-@app.route('/cameras')
+@app.route("/cameras")
 def get_cameras():
-    return simplejson.dumps(Camera.query.all(), cls=AlchemyEncoder)
+    return json.dumps(get_all_cameras())
 
 
-@app.route('/configuration', methods=['GET'])
+@app.route("/configuration", methods=["GET"])
 def get_configuration():
     id = request.args.get("id")
-    configuration_str = simplejson.dumps(get_configuration_from_database(id), cls=AlchemyEncoder)
-    cameras_str = simplejson.dumps(get_cameras_for_configuration(id), cls=AlchemyEncoder)
+    configuration_str = simplejson.dumps(
+        get_configuration_by_id(id), cls=AlchemyEncoder
+    )
+    cameras_str = simplejson.dumps(
+        get_cameras_for_configuration(id), cls=AlchemyEncoder
+    )
     configuration = simplejson.loads(configuration_str)
     cameras = simplejson.loads(cameras_str)
-    return {"configuration": configuration, "cameras": cameras}  # TODO Find something better...
+    return {
+        "configuration": configuration,
+        "cameras": cameras,
+    }  # TODO Find something better...
 
 
-@app.route('/configuration', methods=['POST'])
+@app.route("/configuration", methods=["POST"])
 def add_configuration():
-    add_configuration_to_database(request.json)
+    add_configuration(request.json)
     return Response()
 
 
-@app.route('/configuration', methods=['DELETE'])
+@app.route("/configuration", methods=["DELETE"])
 def delete_configuration():
-    delete_configuration_from_database(request.args.get('id'))
+    delete_configuration(request.args.get("id"))
     return Response()
 
 
-@app.route('/configuration', methods=['PUT'])
+@app.route("/configuration", methods=["PUT"])
 def edit_configuration():
-    edit_configuration_in_database(request.json)
+    edit_configuration(request.json)
     return Response()
 
 
-@app.route('/configurations')
+@app.route("/configurations")
 def get_configurations():
-    return simplejson.dumps(Configuration.query.all(), cls=AlchemyEncoder)
+    return simplejson.dumps(get_all_configurations(), cls=AlchemyEncoder)
 
 
-@app.route('/cameras/show')
+@app.route("/cameras/show")
 def show():
-    id = request.args.get('id')
-    camera = Camera.query.filter_by(id=id).first()
+    id = request.args.get("id")
+    camera = get_camera_by_id(id)
     try:
         camera = VideoCamera(camera)
         active_cameras[id] = camera
-        return Response(gen(camera), content_type="multipart/x-mixed-replace;boundary=frame")
+        return Response(
+            gen(camera), content_type="multipart/x-mixed-replace;boundary=frame"
+        )
     except ConnectionError:
         print("closing tab")
         camera.kill()
@@ -99,42 +118,42 @@ def show():
         return Response()
 
 
-@app.route('/cameras/refresh')
-def refresh():
-    return refresh_handler()
+# @app.route("/cameras/refresh")
+# def refresh():
+#     return refresh_handler()
 
 
-@app.route('/cameras/photo')
+@app.route("/cameras/photo")
 def photo():
-    return photo_handler(request.args.get('id'))
+    return photo_handler(request.args.get("id"))
 
 
-@app.route('/cameras/pano')
+@app.route("/cameras/pano")
 def pano():
-    return pano_handler(request.args.get('id'))
+    return pano_handler(request.args.get("id"))
 
 
-@app.route('/cameras/kill')
+@app.route("/cameras/kill")
 def kill():
-    return stop_live_feed(request.args.get('id'))
+    return stop_live_feed(request.args.get("id"))
 
 
-@app.route('/cameras/edit', methods=['PUT'])
+@app.route("/cameras/edit", methods=["PUT"])
 def edit():
-    edit_camera_in_database(request.json)
+    edit_camera(request.json)
     return Response()
 
 
-@socketio.on('connect', namespace='/web')
+@socketio.on("connect", namespace="/web")
 def connect_web():
-    print('[INFO] Web client connected: {}'.format(request.sid))
+    print("[INFO] Web client connected: {}".format(request.sid))
 
 
-@socketio.on('disconnect', namespace='/web')
+@socketio.on("disconnect", namespace="/web")
 def disconnect_web():
-    print('[INFO] Web client disconnected: {}'.format(request.sid))
+    print("[INFO] Web client disconnected: {}".format(request.sid))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print("start")
-    socketio.run(app=app, host='127.0.0.1', port=5000)
+    socketio.run(app=app, host="127.0.0.1", port=5000)

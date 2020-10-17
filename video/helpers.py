@@ -3,13 +3,14 @@ from datetime import datetime
 
 from flask import Response
 
-from database import db_session
-from models import Camera
-from video import active_cameras, VideoCamera, gen
+from database.connection import db_session
+from database.models import Camera
+from database.operations import get_camera_by_id, get_all_cameras
+from video.video import active_cameras, VideoCamera, gen
 
 
 def live_feed(id):
-    camera = Camera.query.filter_by(id=id).first()
+    camera = get_camera_by_id(id)
 
     try:
         camera = VideoCamera(camera)
@@ -33,25 +34,24 @@ def stop_live_feed(id):
     return Response()
 
 
-def refresh_handler():
-    for cam in Camera.query.all():
-        cam.enabled = True
-        try:
-            print(" ".join(["ping", "-c", "1", cam.ip_address.strip()]))
-            subprocess.check_output(["ping", "-c", "1", cam.ip_address.strip()])
-        except subprocess.SubprocessError:
-            print('cam ' + cam.name + ' didn\'t respond to ping')
-            cam.enabled = True
-        db_session.commit()
-    return Response()
+# def refresh_handler():
+#     for cam in get_all_cameras():
+#         cam.enabled = True
+#         try:
+#             print(" ".join(["ping", "-c", "1", cam.ip_address.strip()]))
+#             subprocess.check_output(["ping", "-c", "1", cam.ip_address.strip()])
+#         except subprocess.SubprocessError:
+#             print("cam " + cam.name + " didn't respond to ping")
+#             cam.enabled = True
+#     return Response()
 
 
 def photo_handler(id):
     cam = active_cameras.get(id)
     if cam is not None:
-        cam.save_frame(str(datetime.now()).replace(' ', '-'))
+        cam.save_frame(str(datetime.now()).replace(" ", "-"))
     else:
-        print('first play a camera to make a photo')
+        print("first play a camera to make a photo")
     return Response()
 
 

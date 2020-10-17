@@ -1,0 +1,29 @@
+version: "2.2"
+services:
+  mysql:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'vision'
+      MYSQL_USER: 'vision_user'
+      MYSQL_PASSWORD: 'password'
+      MYSQL_ROOT_PASSWORD: 'password'
+    ports:
+      - '3306:3306'
+    volumes:
+      - /var/lib/mysql
+#  backend:
+#    depends_on:
+#      - mysql
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    environment:
+#      - FLASK_ENV=development
+#      - db_host=mysql
+#      - db_port=3306
+#      - db_user=vision_user
+#      - db_password=password
+#      - db_name=vision
+#    volumes:
+#      - .:/app/

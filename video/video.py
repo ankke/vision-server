@@ -36,7 +36,7 @@ class VideoCamera(object):
     def get_frame(self):
         frame = self.frame
         if frame is not None:
-            _, jpeg = cv2.imencode('.jpg', frame)
+            _, jpeg = cv2.imencode(".jpg", frame)
             return jpeg.tobytes()
         return None
 
@@ -65,11 +65,17 @@ class VideoCamera(object):
     def set_udp(self):
         with environ_lock:
             if self.camera.udp_supported:
-                os.environ['OPENCV_FFMPEG_CAPTURE_OPTIONS'] = 'rtsp_transport;udp'
-                print("establishing udp connection for %s %s" % (self.camera.name, self.final_url))
+                os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;udp"
+                print(
+                    "establishing udp connection for %s %s"
+                    % (self.camera.name, self.final_url)
+                )
             else:
-                os.environ['OPENCV_FFMPEG_CAPTURE_OPTIONS'] = 'rtsp_transport;tcp'
-                print("establishing tcp connection for %s %s" % (self.camera.name, self.final_url))
+                os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp"
+                print(
+                    "establishing tcp connection for %s %s"
+                    % (self.camera.name, self.final_url)
+                )
             self.video = cv2.VideoCapture(self.final_url)
             print("connected %s %s" % (self.camera.name, self.final_url))
             self.video.set(cv2.CAP_PROP_BUFFERSIZE, 6)
@@ -91,9 +97,9 @@ def gen(cam):
     while True:
         frame = cam.get_frame()
         if frame is not None:
-            yield b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n'
+            yield b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + frame + b"\r\n\r\n"
 
 
 def encode_in_base64(frame):
-    frame = base64.b64encode(frame).decode('utf-8')
+    frame = base64.b64encode(frame).decode("utf-8")
     return "data:image/jpeg;base64,{}".format(frame)
