@@ -44,9 +44,9 @@ def add_camera_():
     return simplejson.dumps(new_camera, cls=AlchemyEncoder)
 
 
-@app.route("/camera", methods=["DELETE"])
-def delete_camera():
-    delete_camera(request.args.get("id"))
+@app.route("/camera/<id>", methods=["DELETE"])
+def delete_camera_(id):
+    delete_camera(id)
     return Response()
 
 
