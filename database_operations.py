@@ -5,8 +5,14 @@ from models import Camera, Configuration, Camera_Configuration
 
 
 def add_camera_to_database(json):
+    sub_streams = json['sub_stream']
+    json.pop('sub_stream')
+    new_camera_with_sub_streams = []
+    for sub_stream in sub_streams:
+        new_camera_with_sub_streams.append(Camera(**json, sub_stream=sub_stream))
     new_camera = Camera(**json)
-    db_session.add(new_camera)
+    for camera_row in new_camera_with_sub_streams:
+        db_session.add(camera_row)
     db_session.commit()
     return new_camera
 

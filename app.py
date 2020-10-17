@@ -12,13 +12,12 @@ from request_handler import refresh_handler, photo_handler, pano_handler, stop_l
 from video import gen, VideoCamera, active_cameras
 
 app = Flask(__name__)
+
+socketio = SocketIO(app, cors_allowed_origins="*")
 CORS(app)
 
-app = Flask(__name__)
-socketio = SocketIO(app, cors_allowed_origins="*")
 
-
-@app.route('/')
+@app.route('/health_check')
 def hello_world():
     return "Hello world"
 
