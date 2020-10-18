@@ -20,17 +20,17 @@ def add_camera(json):
 def get_camera_by_id(id):
     return (
         db_session.query(Camera)
-        .filter_by(id=id)
-        .options(joinedload("sub_streams"))
-        .one()
+            .filter_by(id=id)
+            .options(joinedload("sub_streams"))
+            .one()
     )
 
 
 def edit_camera(json):
     try:
-        cam = db_session.query(Camera).filter_by(id=json["id"])
-        cam.one()
-        cam.update(json)
+        sub_streams = json["sub_streams"]
+        json.pop("sub_streams")
+        cam = db_session.query(Camera).filter(Camera.id == json["id"]).update(json)
         db_session.commit()
     except NoResultFound:
         print("no camera with id: " + str(json["id"]))
@@ -56,8 +56,8 @@ def get_cameras_for_configuration(conf_id):
     try:
         cameras_id = (
             db_session.query(Camera_Configuration.camera_id)
-            .filter_by(configuration_id=int(conf_id))
-            .all()
+                .filter_by(configuration_id=int(conf_id))
+                .all()
         )
         cameras = []
         for cam_id in cameras_id:
@@ -102,8 +102,8 @@ def edit_configuration(json):
 
         command = (
             db_session.query(Camera_Configuration)
-            .delete()
-            .where(Camera_Configuration.configuration_id == configuration["id"])
+                .delete()
+                .where(Camera_Configuration.configuration_id == configuration["id"])
         )
         db_session.execute(command)
 
@@ -128,9 +128,9 @@ def delete_configuration(id):
 def get_all_cameras():
     cameras = (
         db_session.query(Camera)
-        .options(joinedload("sub_streams"))
-        .group_by(Camera.id)
-        .all()
+            .options(joinedload("sub_streams"))
+            .group_by(Camera.id)
+            .all()
     )
     result = []
     for camera in cameras:

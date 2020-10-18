@@ -5,6 +5,7 @@ from flask import Flask, request, Response
 from flask_cors import CORS
 from flask_socketio import SocketIO
 
+from database.connection import db_session
 from database.encoder import AlchemyEncoder
 from database.operations import (
     get_cameras_for_configuration,
@@ -51,7 +52,8 @@ def delete_camera_(id):
 
 
 @app.route("/camera", methods=["PUT"])
-def edit_camera():
+def edit_camera_():
+    print(request.json)
     edit_camera(request.json)
     return Response()
 
@@ -152,6 +154,11 @@ def connect_web():
 @socketio.on("disconnect", namespace="/web")
 def disconnect_web():
     print("[INFO] Web client disconnected: {}".format(request.sid))
+
+
+@app.teardown_request
+def teardown_db(exception):
+    db_session.remove()
 
 
 if __name__ == "__main__":
