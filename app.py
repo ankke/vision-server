@@ -103,7 +103,7 @@ def get_configurations():
     return simplejson.dumps(get_all_configurations(), cls=AlchemyEncoder)
 
 
-@app.route("/cameras/show")
+@app.route("/camera/show")
 def show():
     id = request.args.get("id")
     camera = get_camera_by_id(id)
@@ -125,25 +125,19 @@ def show():
 #     return refresh_handler()
 
 
-@app.route("/cameras/photo")
+@app.route("/camera/photo")
 def photo():
     return photo_handler(request.args.get("id"))
 
 
-@app.route("/cameras/pano")
+@app.route("/camera/pano")
 def pano():
     return pano_handler(request.args.get("id"))
 
 
-@app.route("/cameras/kill")
+@app.route("/camera/kill")
 def kill():
     return stop_live_feed(request.args.get("id"))
-
-
-@app.route("/cameras/edit", methods=["PUT"])
-def edit():
-    edit_camera(request.json)
-    return Response()
 
 
 @socketio.on("connect", namespace="/web")

@@ -1,11 +1,8 @@
-import subprocess
 from datetime import datetime
 
 from flask import Response
 
-from database.connection import db_session
-from database.models import Camera
-from database.operations import get_camera_by_id, get_all_cameras
+from database.operations import get_camera_by_id
 from video.video import active_cameras, VideoCamera, gen
 
 
