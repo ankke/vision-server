@@ -4,6 +4,8 @@ This is a dockerized app.
 
 To run web server:
 
+`cp docker-compose.override.example.yml docker-compose.override.yml`
+
 `docker-compose build`
 
 `docker-compose up`

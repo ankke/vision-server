@@ -12,18 +12,20 @@ services:
       - '3306:3306'
     volumes:
       - /var/lib/mysql
-#  backend:
-#    depends_on:
-#      - mysql
-#    build:
-#      context: .
-#      dockerfile: Dockerfile
-#    environment:
-#      - FLASK_ENV=development
-#      - db_host=mysql
-#      - db_port=3306
-#      - db_user=vision_user
-#      - db_password=password
-#      - db_name=vision
-#    volumes:
-#      - .:/app/
+  backend:
+    depends_on:
+      - mysql
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - FLASK_ENV=development
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=vision_user
+      - DB_PASSWORD=password
+      - DB_NAME=vision
+    ports:
+      - '9000:9000'
+    volumes:
+      - .:/app/
