@@ -26,6 +26,6 @@ services:
       - DB_PASSWORD=password
       - DB_NAME=vision
     ports:
-      - '9000:9000'
+      - '5000:5000'
     volumes:
       - .:/app/
