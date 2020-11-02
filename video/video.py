@@ -12,7 +12,8 @@ class VideoCamera(object):
     def __init__(self, camera):
         self.camera = camera
         self.condition = Condition()
-        self.final_url = self.camera.url + self.camera.sub_stream + self.camera.suffix
+        # self.final_url = self.camera.url + self.camera.sub_stream + self.camera.suffix
+        self.final_url = 'rtsp://admin:AGHspace@192.168.0.54/cam/realmonitor?channel=1&subtype=0'
         self.active = False
         self.video = None
         self.new_frame_available = False

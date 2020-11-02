@@ -162,5 +162,4 @@ if __name__ != '__main__':
     app.logger.setLevel(gunicorn_logger.level)
 
 if __name__ == "__main__":
-    print("start")
-    socketio.run(app=app, host="127.0.0.1", port=5000)
+    socketio.run(app=app, host="127.0.0.1", port=5000, debug=True)

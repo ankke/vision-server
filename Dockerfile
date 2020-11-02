@@ -13,5 +13,5 @@ RUN pipenv install --dev --system
 COPY . .
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-CMD gunicorn --bind :5000 --log-level=debug $APP_NAME --reload
+CMD gunicorn --bind :5000 --log-level=debug $APP_NAME --threads 8 --workers 1
 EXPOSE 5000
