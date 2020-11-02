@@ -1,4 +1,4 @@
-FROM python:3.8-slim-buster
+FROM jjanzic/docker-python3-opencv
 
 ENV APP_NAME=app:app
 
@@ -13,5 +13,5 @@ RUN pipenv install --dev --system
 COPY . .
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-CMD gunicorn --bind :9000 --worker-class gthread --threads 32 $APP_NAME --reload
-EXPOSE 9000
+CMD gunicorn --bind :5000 --worker-class gthread --threads 32 $APP_NAME --reload
+EXPOSE 5000

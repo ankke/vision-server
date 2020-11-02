@@ -13,7 +13,14 @@ sys.path.insert(0, os.getcwd())
 # access to the values within the .ini file in use.
 config = context.config
 config.set_main_option(
-    "sqlalchemy.url", "mysql+pymysql://vision_user:password@localhost:3306/vision"
+    "sqlalchemy.url",
+    "mysql+pymysql://{}:{}@{}:{}/{}".format(
+        os.getenv("DB_USER"),
+        os.getenv("DB_PASSWORD"),
+        os.getenv("DB_HOST"),
+        os.getenv("DB_PORT"),
+        os.getenv("DB_NAME"),
+    ),
 )
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
