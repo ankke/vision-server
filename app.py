@@ -1,4 +1,5 @@
 import json
+import logging
 
 import simplejson
 from flask import Flask, request, Response
@@ -154,6 +155,11 @@ def disconnect_web():
 def teardown_db(exception):
     db_session.remove()
 
+
+if __name__ != '__main__':
+    gunicorn_logger = logging.getLogger('gunicorn.error')
+    app.logger.handlers = gunicorn_logger.handlers
+    app.logger.setLevel(gunicorn_logger.level)
 
 if __name__ == "__main__":
     print("start")

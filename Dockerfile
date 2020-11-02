@@ -13,5 +13,5 @@ RUN pipenv install --dev --system
 COPY . .
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-CMD gunicorn --bind :5000 --worker-class gthread --threads 32 $APP_NAME --reload
+CMD gunicorn --bind :5000 --log-level=debug $APP_NAME --reload
 EXPOSE 5000
