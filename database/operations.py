@@ -28,9 +28,15 @@ def get_camera_by_id(id):
 
 def edit_camera(json):
     try:
+        camera = db_session.query(Camera).filter(Camera.id == json["id"]).one()
         sub_streams = json["sub_streams"]
+        ss = db_session.query(CameraSubStream).filter(CameraSubStream.camera == camera.id).all()
+        for s in ss:
+            db_session.delete(s)
+        for sub_stream in sub_streams:
+            db_session.add(CameraSubStream(camera=camera.id, sub_stream=sub_stream))
         json.pop("sub_streams")
-        cam = db_session.query(Camera).filter(Camera.id == json["id"]).update(json)
+        db_session.query(Camera).filter(Camera.id == json["id"]).update(json)
         db_session.commit()
     except NoResultFound:
         print("no camera with id: " + str(json["id"]))
@@ -38,8 +44,8 @@ def edit_camera(json):
 
 def delete_camera(id):
     try:
-        cam = get_camera_by_id(id)
-        db_session.delete(cam)
+        camera = get_camera_by_id(id)
+        db_session.delete(camera)
         db_session.commit()
     except NoResultFound:
         print("no camera with id: " + id)

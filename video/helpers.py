@@ -3,7 +3,7 @@ from datetime import datetime
 from flask import Response
 
 from database.operations import get_camera_by_id
-from video.video import active_cameras, VideoCamera, gen
+from video.video import active_cameras, VideoCamera
 
 
 def live_feed(id):
@@ -57,3 +57,9 @@ def pano_handler(id):
     if cam is not None:
         cam.save_frame()
     return Response()
+
+def gen(cam):
+    while True:
+        frame = cam.get_frame_bytes()
+        if frame is not None:
+            yield b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + frame + b"\r\n\r\n"

@@ -4,7 +4,6 @@ import logging
 import simplejson
 from flask import Flask, request, Response
 from flask_cors import CORS
-from flask_socketio import SocketIO
 
 from database.connection import db_session
 from database.encoder import AlchemyEncoder
@@ -21,11 +20,10 @@ from database.operations import (
     get_all_cameras,
     get_all_configurations,
 )
-from video.helpers import photo_handler, pano_handler, stop_live_feed
-from video.video import VideoCamera, active_cameras, gen
+from video.helpers import photo_handler, pano_handler, stop_live_feed, gen
+from video.video import VideoCamera, active_cameras
 
 app = Flask(__name__)
-socketio = SocketIO(app, cors_allowed_origins="*")
 CORS(app)
 
 
@@ -78,7 +76,7 @@ def get_configuration():
     return {
         "configuration": configuration,
         "cameras": cameras,
-    }  # TODO Find something better...
+    }
 
 
 @app.route("/configuration", methods=["POST"])
@@ -106,6 +104,7 @@ def get_configurations():
 
 @app.route("/camera/show")
 def show():
+    logging.error('rest')
     id = request.args.get("id")
     camera = get_camera_by_id(id)
     try:
@@ -115,7 +114,6 @@ def show():
             gen(camera), content_type="multipart/x-mixed-replace;boundary=frame"
         )
     except ConnectionError:
-        print("closing tab")
         camera.kill()
         del camera
         return Response()
@@ -141,16 +139,6 @@ def kill():
     return stop_live_feed(request.args.get("id"))
 
 
-@socketio.on("connect", namespace="/web")
-def connect_web():
-    print("[INFO] Web client connected: {}".format(request.sid))
-
-
-@socketio.on("disconnect", namespace="/web")
-def disconnect_web():
-    print("[INFO] Web client disconnected: {}".format(request.sid))
-
-
 @app.teardown_request
 def teardown_db(exception):
     db_session.remove()
@@ -162,4 +150,4 @@ if __name__ != '__main__':
     app.logger.setLevel(gunicorn_logger.level)
 
 if __name__ == "__main__":
-    socketio.run(app=app, host="127.0.0.1", port=5000, debug=True)
+    app.run(host="127.0.0.1", port=5000, debug=True,)

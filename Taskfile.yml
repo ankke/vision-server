@@ -6,9 +6,6 @@ tasks:
   format:
     cmds:
       - black .
-  check_formatting:
-    cmds:
-      - black --check .
   run_dev:
     cmds:
       - FLASK_ENV=development flask run

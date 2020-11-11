@@ -1,4 +1,4 @@
-import base64
+import logging
 import os
 from threading import Thread, RLock, Condition
 
@@ -14,93 +14,85 @@ class VideoCamera(object):
         self.condition = Condition()
         # self.final_url = self.camera.url + self.camera.sub_stream + self.camera.suffix
         self.final_url = 'rtsp://admin:AGHspace@192.168.0.54/cam/realmonitor?channel=1&subtype=0'
+        # self.final_url = 0
         self.active = False
         self.video = None
         self.new_frame_available = False
-        self.connect()
-        _, self.frame = self.video.read()
-        print("starting thread for %s %s" % (self.camera.name, self.final_url))
-        self.live = True
+        self.frame = None
+        self.live = False
         self.thread = Thread(target=self.update, args=())
-        self.thread.start()
+
 
     def __del__(self):
-        print("closing connection with %s %s" % (self.camera.name, self.final_url))
+        logging.error("closing connection with %s %s" % (self.camera.name, self.final_url))
         if self.video is not None:
             self.video.release()
 
-    def save_frame(self, timestamp):
-        print("saving photo_%s" % str(timestamp))
-        frame = self.frame
-        cv2.imwrite("./photos/photo%s.png" % str(timestamp), frame)
-
-    def get_frame(self):
-        frame = self.frame
-        if frame is not None:
-            _, jpeg = cv2.imencode(".jpg", frame)
-            return jpeg.tobytes()
-        return None
-
-    def update(self):
-        while self.live:
-            _, self.frame = self.video.read()
-
-    def is_live(self):
-        return self.active
-
-    def kill(self):
-        self.live = False
-        self.thread.join()
-
-    def connect(self):
-        thread = Thread(target=self.set_udp, args=())
+    def activate(self):
+        self.set_capture_options()
+        thread = Thread(target=self.connect(), args=())
+        logging.error("starting thread for %s %s" % (self.camera.name, self.final_url))
         thread.start()
-        thread.join(timeout=60)
-        if self.video is not None:
-            self.active = True
-            print("SUCCESS %s %s" % (self.camera.name, self.final_url))
-        else:
-            print("FAILURE %s %s" % (self.camera.name, self.final_url))
-            raise ConnectionError
+        thread.join(timeout=30)
+        self.live = True
+        self.thread.start()
 
-    def set_udp(self):
+    def set_capture_options(self):
         with environ_lock:
             if self.camera.udp_supported:
                 os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;udp"
-                print(
+                logging.error(
                     "establishing udp connection for %s %s"
                     % (self.camera.name, self.final_url)
                 )
             else:
                 os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp"
-                print(
+                logging.error(
                     "establishing tcp connection for %s %s"
                     % (self.camera.name, self.final_url)
                 )
-            self.video = cv2.VideoCapture(self.final_url)
-            print("connected %s %s" % (self.camera.name, self.final_url))
-            self.video.set(cv2.CAP_PROP_BUFFERSIZE, 6)
+
+    def connect(self):
+        self.video = cv2.VideoCapture(self.final_url)
+        logging.error("connected %s %s" % (self.camera.name, self.final_url))
+        self.video.set(cv2.CAP_PROP_BUFFERSIZE, 6)
+        if self.video is not None:
+            self.active = True
+            logging.error("SUCCESS %s %s" % (self.camera.name, self.final_url))
+        else:
+            logging.error("FAILURE %s %s" % (self.camera.name, self.final_url))
+            raise ConnectionError
+
+    def update(self):
+        while self.live:
+            with self.condition:
+                if self.new_frame_available:
+                    self.condition.wait()
+                _, self.frame = self.video.read()
+                self.new_frame_available = True
+                self.condition.notifyAll()
+
+    def kill(self):
+        self.live = False
+        self.thread.join()
+
+    def save_frame(self, timestamp):
+        logging.error("saving photo_%s" % str(timestamp))
+        frame = self.frame
+        cv2.imwrite("./photos/photo%s.png" % str(timestamp), frame)
+
+    def get_frame_bytes(self):
+        with self.condition:
+            if not self.new_frame_available:
+                self.condition.wait()
+            if self.frame is not None:
+                _, jpeg = cv2.imencode(".jpg", self.frame)
+                self.new_frame_available = False
+                self.condition.notifyAll()
+                return jpeg.tobytes()
+            return None
+
+    def is_live(self):
+        return self.active
 
 
-class StreamArray(list):
-    def __init__(self, cam):
-        super().__init__()
-        self.cam = cam
-
-    def __iter__(self):
-        return gen(self.cam)
-
-    def __len__(self):
-        return 1
-
-
-def gen(cam):
-    while True:
-        frame = cam.get_frame()
-        if frame is not None:
-            yield b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + frame + b"\r\n\r\n"
-
-
-def encode_in_base64(frame):
-    frame = base64.b64encode(frame).decode("utf-8")
-    return "data:image/jpeg;base64,{}".format(frame)
