@@ -13,7 +13,9 @@ class VideoCamera(object):
         self.camera = camera
         self.condition = Condition()
         # self.final_url = self.camera.url + self.camera.sub_stream + self.camera.suffix
-        self.final_url = 'rtsp://admin:AGHspace@192.168.0.54/cam/realmonitor?channel=1&subtype=0'
+        self.final_url = (
+            "rtsp://admin:AGHspace@192.168.0.54/cam/realmonitor?channel=1&subtype=0"
+        )
         # self.final_url = 0
         self.active = False
         self.video = None
@@ -22,9 +24,10 @@ class VideoCamera(object):
         self.live = False
         self.thread = Thread(target=self.update, args=())
 
-
     def __del__(self):
-        logging.error("closing connection with %s %s" % (self.camera.name, self.final_url))
+        logging.error(
+            "closing connection with %s %s" % (self.camera.name, self.final_url)
+        )
         if self.video is not None:
             self.video.release()
 
@@ -94,5 +97,3 @@ class VideoCamera(object):
 
     def is_live(self):
         return self.active
-
-

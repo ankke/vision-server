@@ -7,7 +7,7 @@ from flask_cors import CORS
 
 from database.connection import db_session
 from database.encoder import AlchemyEncoder
-from database.operations import (
+from database.dao import (
     get_cameras_for_configuration,
     add_camera,
     edit_camera,
@@ -57,54 +57,42 @@ def edit_camera_():
     return Response()
 
 
-@app.route("/cameras")
+@app.route("/cameras", methods=["GET"])
 def get_cameras():
     return json.dumps(get_all_cameras())
 
 
-@app.route("/configuration", methods=["GET"])
-def get_configuration():
-    id = request.args.get("id")
-    configuration_str = simplejson.dumps(
-        get_configuration_by_id(id), cls=AlchemyEncoder
-    )
-    cameras_str = simplejson.dumps(
-        get_cameras_for_configuration(id), cls=AlchemyEncoder
-    )
-    configuration = simplejson.loads(configuration_str)
-    cameras = simplejson.loads(cameras_str)
-    return {
-        "configuration": configuration,
-        "cameras": cameras,
-    }
-
-
 @app.route("/configuration", methods=["POST"])
-def add_configuration():
+def configuration_post():
     add_configuration(request.json)
     return Response()
 
 
-@app.route("/configuration", methods=["DELETE"])
-def delete_configuration():
-    delete_configuration(request.args.get("id"))
+@app.route("/configuration/<id>", methods=["DELETE"])
+def configuration_delete(id):
+    delete_configuration(id)
     return Response()
 
 
 @app.route("/configuration", methods=["PUT"])
-def edit_configuration():
+def configuration_put():
     edit_configuration(request.json)
     return Response()
 
 
-@app.route("/configurations")
-def get_configurations():
-    return simplejson.dumps(get_all_configurations(), cls=AlchemyEncoder)
+@app.route("/configurations", methods=["GET"])
+def configurations_get():
+    return json.dumps(get_all_configurations())
+
+
+@app.route("/configuration/<id>/cameras", methods=["GET"])
+def cameras_for_configuration_get(id):
+    return json.dumps(get_cameras_for_configuration(id))
 
 
 @app.route("/camera/show")
 def show():
-    logging.error('rest')
+    logging.error("rest")
     id = request.args.get("id")
     camera = get_camera_by_id(id)
     try:
@@ -144,10 +132,14 @@ def teardown_db(exception):
     db_session.remove()
 
 
-if __name__ != '__main__':
-    gunicorn_logger = logging.getLogger('gunicorn.error')
+if __name__ != "__main__":
+    gunicorn_logger = logging.getLogger("gunicorn.error")
     app.logger.handlers = gunicorn_logger.handlers
     app.logger.setLevel(gunicorn_logger.level)
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=True,)
+    app.run(
+        host="127.0.0.1",
+        port=5000,
+        debug=True,
+    )

@@ -2,7 +2,7 @@ from datetime import datetime
 
 from flask import Response
 
-from database.operations import get_camera_by_id
+from database.dao import get_camera_by_id
 from video.video import active_cameras, VideoCamera
 
 
@@ -57,6 +57,7 @@ def pano_handler(id):
     if cam is not None:
         cam.save_frame()
     return Response()
+
 
 def gen(cam):
     while True:

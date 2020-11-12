@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from sqlalchemy import Column, ForeignKey
+from sqlalchemy.dialects.mysql import INTEGER, VARCHAR, BOOLEAN
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -7,39 +8,40 @@ Base = declarative_base()
 
 class Camera(Base):
     __tablename__ = "cameras"
-    id = Column(Integer, primary_key=True)
-    name = Column(String(25), default=" ")
-    url = Column(String(100), default=" ")
-    suffix = Column(String(40), default=" ")
-    ip_address = Column(String(20), default=" ")
-    udp_supported = Column(Boolean())
-    ptz_app = Column(Boolean())
-    enabled = Column(Boolean())
-    configurations = relationship("Camera_Configuration", cascade="all,delete")
+    id = Column(INTEGER, primary_key=True)
+    name = Column(VARCHAR(128))
+    url = Column(VARCHAR(128))
+    suffix = Column(VARCHAR(128), default=" ")
+    ip_address = Column(VARCHAR(128))
+    udp_supported = Column(BOOLEAN)
+    ptz_app = Column(BOOLEAN)
+    enabled = Column(BOOLEAN)
+    configurations = relationship("CameraConfiguration", cascade="all,delete")
     sub_streams = relationship("CameraSubStream", cascade="all, delete")
 
 
 class CameraSubStream(Base):
     __tablename__ = "camera_sub_streams"
-    id = Column(Integer, primary_key=True)
+    id = Column(INTEGER, primary_key=True)
     camera = Column(
-        Integer,
+        INTEGER,
         ForeignKey("cameras.id", ondelete="CASCADE"),
         nullable=True,
     )
-    sub_stream = Column(String(40), default="")
+    sub_stream = Column(VARCHAR(128), default="")
 
 
 class Configuration(Base):
     __tablename__ = "configurations"
-    id = Column(Integer, primary_key=True)
-    name = Column(String(25), default=" ")
-    cameras = relationship("Camera_Configuration", cascade="all,delete")
+    id = Column(INTEGER, primary_key=True)
+    name = Column(VARCHAR(128))
+    subnet = Column(VARCHAR(128))
+    cameras = relationship("CameraConfiguration", cascade="all,delete")
 
 
-class Camera_Configuration(Base):
+class CameraConfiguration(Base):
     __tablename__ = "cameras_configurations"
-    camera_id = Column(Integer, ForeignKey("cameras.id"), primary_key=True)
+    camera_id = Column(INTEGER, ForeignKey("cameras.id"), primary_key=True)
     configuration_id = Column(
-        Integer, ForeignKey("configurations.id"), primary_key=True
+        INTEGER, ForeignKey("configurations.id"), primary_key=True
     )

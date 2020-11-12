@@ -14,6 +14,4 @@ engine = create_engine(
     convert_unicode=True,
 )
 
-db_session = scoped_session(
-    sessionmaker(bind=engine)
-)
+db_session = scoped_session(sessionmaker(bind=engine))
