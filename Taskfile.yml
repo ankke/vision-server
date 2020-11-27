@@ -1,0 +1,14 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+  format:
+    cmds:
+      - black .
+  run_dev:
+    cmds:
+      - FLASK_ENV=development flask run
+  setup_db:
+    cmds:
+      - alembic upgrade head
