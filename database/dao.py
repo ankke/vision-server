@@ -56,9 +56,12 @@ def get_configuration_by_id(id):
 
 
 def get_cameras_for_configuration(configuration_id):
-    cameras = db_session.query(Camera).join(CameraConfiguration).filter(
-        CameraConfiguration.configuration_id == configuration_id
-    ).all()
+    cameras = (
+        db_session.query(Camera)
+        .join(CameraConfiguration)
+        .filter(CameraConfiguration.configuration_id == configuration_id)
+        .all()
+    )
     result = []
     for camera in cameras:
         result.append(
