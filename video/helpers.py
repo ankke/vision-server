@@ -10,7 +10,6 @@ def live_feed(id):
     camera = get_camera_by_id(id)
 
     try:
-        unused = 1
         camera = VideoCamera(camera)
         active_cameras[id] = camera
         return gen(camera)
