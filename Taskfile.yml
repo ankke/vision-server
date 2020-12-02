@@ -6,6 +6,9 @@ tasks:
   format:
     cmds:
       - black .
+  linter:
+    cmds:
+      - flake8 .
   run_dev:
     cmds:
       - FLASK_ENV=development flask run

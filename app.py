@@ -97,7 +97,6 @@ def show():
     camera = get_camera_by_id(id)
     try:
         camera = VideoCamera(camera)
-        active_cameras[id] = camera
         return Response(
             gen(camera), content_type="multipart/x-mixed-replace;boundary=frame"
         )

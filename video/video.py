@@ -38,6 +38,7 @@ class VideoCamera(object):
         thread.start()
         thread.join(timeout=30)
         self.live = True
+        active_cameras[self.camera.id] = self.camera
         self.thread.start()
 
     def set_capture_options(self):
@@ -82,7 +83,7 @@ class VideoCamera(object):
     def save_frame(self, timestamp):
         logging.error("saving photo_%s" % str(timestamp))
         frame = self.frame
-        cv2.imwrite("./photos/photo%s.png" % str(timestamp), frame)
+        cv2.imwrite("~/Desktop/photo%s.png" % str(timestamp), frame)
 
     def get_frame_bytes(self):
         with self.condition:
