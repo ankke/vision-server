@@ -18,7 +18,7 @@ from database.dao import (
     delete_configuration,
     edit_configuration,
     get_all_cameras,
-    get_all_configurations,
+    get_all_configurations, get_settings, update_settings, create_settings,
 )
 from video.helpers import photo_handler, pano_handler, stop_live_feed, gen
 from video.video import VideoCamera, active_cameras
@@ -26,15 +26,17 @@ from video.video import VideoCamera, active_cameras
 app = Flask(__name__)
 CORS(app)
 
+logger = logging.getLogger("root")
+
 
 @app.route("/health_check")
 def health_check():
     return "Healthy"
 
 
-@app.route("/camera", methods=["GET"])
-def get_camera():
-    camera = get_camera_by_id(request.args.get("id"))
+@app.route("/camera/<id>", methods=["GET"])
+def get_camera(id):
+    camera = get_camera_by_id(id)
     return simplejson.dumps(camera, cls=AlchemyEncoder)
 
 
@@ -68,6 +70,12 @@ def configuration_post():
     return Response()
 
 
+@app.route("/configuration/<id>", methods=["GET"])
+def get_configuration(id):
+    camera = get_configuration_by_id(id)
+    return simplejson.dumps(camera, cls=AlchemyEncoder)
+
+
 @app.route("/configuration/<id>", methods=["DELETE"])
 def configuration_delete(id):
     delete_configuration(id)
@@ -92,17 +100,16 @@ def cameras_for_configuration_get(id):
 
 @app.route("/camera/show")
 def show():
-    logging.error("rest")
     id = request.args.get("id")
     camera = get_camera_by_id(id)
     try:
         camera = VideoCamera(camera)
+        camera.activate()
         return Response(
             gen(camera), content_type="multipart/x-mixed-replace;boundary=frame"
         )
     except ConnectionError:
         camera.kill()
-        del camera
         return Response()
 
 
@@ -123,7 +130,19 @@ def pano():
 
 @app.route("/camera/kill")
 def kill():
-    return stop_live_feed(request.args.get("id"))
+    return stop_live_feed(int(request.args.get("id")))
+
+
+@app.route("/settings", methods=["GET"])
+def settings_get():
+    settings = get_settings()
+    return simplejson.dumps(settings, cls=AlchemyEncoder)
+
+
+@app.route("/settings", methods=["PUT"])
+def settings_put():
+    settings = update_settings(request.json)
+    return simplejson.dumps(settings, cls=AlchemyEncoder)
 
 
 @app.teardown_request
@@ -133,6 +152,9 @@ def teardown_db(exception):
 
 if __name__ != "__main__":
     gunicorn_logger = logging.getLogger("gunicorn.error")
+    logger = logging.getLogger("root")
+    logger.handlers = gunicorn_logger.handlers
+    logger.setLevel(gunicorn_logger.level)
     app.logger.handlers = gunicorn_logger.handlers
     app.logger.setLevel(gunicorn_logger.level)
 

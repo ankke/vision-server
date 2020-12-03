@@ -1,33 +1,17 @@
+import logging
 from datetime import datetime
 
 from flask import Response
 
-from database.dao import get_camera_by_id
-from video.video import active_cameras, VideoCamera
+from video.video import active_cameras
 
+logger = logging.getLogger("root")
 
-def live_feed(id):
-    camera = get_camera_by_id(id)
-
-    try:
-        camera = VideoCamera(camera)
-        active_cameras[id] = camera
-        return gen(camera)
-
-        # return Response(gen(camera), content_type="multipart/x-mixed-replace;boundary=frame")
-    except ConnectionError:
-        print("closing tab")
-        camera.kill()
-        del camera
-        return Response()
-
-
-def stop_live_feed(id):
-    cam = active_cameras.get(id)
+def stop_live_feed(id_):
+    cam = active_cameras.get(id_)
     if cam is not None:
         cam.kill()
-        active_cameras.pop(id)
-    del cam
+        active_cameras.pop(id_)
     return Response()
 
 

@@ -1,8 +1,12 @@
+import logging
+
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.exc import NoResultFound
 
 from database.connection import db_session
 from database.models import *
+
+logger = logging.getLogger("root")
 
 
 def add_camera(json):
@@ -19,9 +23,9 @@ def add_camera(json):
 def get_camera_by_id(id):
     return (
         db_session.query(Camera)
-        .filter_by(id=id)
-        .options(joinedload("sub_streams"))
-        .one()
+            .filter_by(id=id)
+            .options(joinedload("sub_streams"))
+            .one()
     )
 
 
@@ -30,8 +34,8 @@ def edit_camera(json):
     sub_streams = json["sub_streams"]
     ss = (
         db_session.query(CameraSubStream)
-        .filter(CameraSubStream.camera == camera.id)
-        .all()
+            .filter(CameraSubStream.camera == camera.id)
+            .all()
     )
     for s in ss:
         db_session.delete(s)
@@ -58,9 +62,9 @@ def get_configuration_by_id(id):
 def get_cameras_for_configuration(configuration_id):
     cameras = (
         db_session.query(Camera)
-        .join(CameraConfiguration)
-        .filter(CameraConfiguration.configuration_id == configuration_id)
-        .all()
+            .join(CameraConfiguration)
+            .filter(CameraConfiguration.configuration_id == configuration_id)
+            .all()
     )
     result = []
     for camera in cameras:
@@ -103,8 +107,8 @@ def edit_configuration(json):
     )
     cc = (
         db_session.query(CameraConfiguration)
-        .filter(CameraConfiguration.configuration_id == configuration.id)
-        .all()
+            .filter(CameraConfiguration.configuration_id == configuration.id)
+            .all()
     )
     for c in cc:
         db_session.delete(c)
@@ -125,9 +129,9 @@ def delete_configuration(id):
 def get_all_cameras():
     cameras = (
         db_session.query(Camera)
-        .options(joinedload("sub_streams"))
-        .group_by(Camera.id)
-        .all()
+            .options(joinedload("sub_streams"))
+            .group_by(Camera.id)
+            .all()
     )
     result = []
     for camera in cameras:
@@ -152,9 +156,9 @@ def get_all_cameras():
 def get_all_configurations():
     configurations = (
         db_session.query(Configuration)
-        .options(joinedload("cameras"))
-        .group_by(Configuration.id)
-        .all()
+            .options(joinedload("cameras"))
+            .group_by(Configuration.id)
+            .all()
     )
     result = []
     for configuration in configurations:
@@ -167,3 +171,21 @@ def get_all_configurations():
             }
         )
     return result
+
+
+def get_settings():
+    return db_session.query(Setting).one()
+
+
+def update_settings(json):
+    logger.debug(json)
+    settings = db_session.query(Setting).one()
+    settings.path = json['path']
+    settings.udp_preferred = json['udp_preferred']
+    db_session.commit()
+
+
+def create_settings(json):
+    settings = Setting(path=json["path"], udp_preferred=json["udp_preferred"])
+    db_session.add(settings)
+    db_session.commit()

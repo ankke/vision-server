@@ -45,3 +45,10 @@ class CameraConfiguration(Base):
     configuration_id = Column(
         INTEGER, ForeignKey("configurations.id"), primary_key=True
     )
+
+
+class Setting(Base):
+    __tablename__ = "settings"
+    id = Column(INTEGER, primary_key=True)
+    path = Column(VARCHAR(256), default='')
+    udp_preferred = Column(BOOLEAN, default='true')

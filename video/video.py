@@ -6,6 +6,7 @@ import cv2
 
 environ_lock = RLock()
 active_cameras = {}
+logger = logging.getLogger("root")
 
 
 class VideoCamera(object):
@@ -24,47 +25,41 @@ class VideoCamera(object):
         self.live = False
         self.thread = Thread(target=self.update, args=())
 
-    def __del__(self):
-        logging.error(
-            "closing connection with %s %s" % (self.camera.name, self.final_url)
-        )
-        if self.video is not None:
-            self.video.release()
 
     def activate(self):
         self.set_capture_options()
         thread = Thread(target=self.connect(), args=())
-        logging.error("starting thread for %s %s" % (self.camera.name, self.final_url))
         thread.start()
         thread.join(timeout=30)
         self.live = True
-        active_cameras[self.camera.id] = self.camera
+        active_cameras[self.camera.id] = self
+        logger.debug("starting thread for %s %s" % (self.camera.name, self.final_url))
         self.thread.start()
 
     def set_capture_options(self):
         with environ_lock:
             if self.camera.udp_supported:
                 os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;udp"
-                logging.error(
+                logger.debug(
                     "establishing udp connection for %s %s"
                     % (self.camera.name, self.final_url)
                 )
             else:
                 os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp"
-                logging.error(
+                logger.debug(
                     "establishing tcp connection for %s %s"
                     % (self.camera.name, self.final_url)
                 )
 
     def connect(self):
         self.video = cv2.VideoCapture(self.final_url)
-        logging.error("connected %s %s" % (self.camera.name, self.final_url))
+        logger.debug("connected %s %s" % (self.camera.name, self.final_url))
         self.video.set(cv2.CAP_PROP_BUFFERSIZE, 6)
         if self.video is not None:
             self.active = True
-            logging.error("SUCCESS %s %s" % (self.camera.name, self.final_url))
+            logger.debug("SUCCESS %s %s" % (self.camera.name, self.final_url))
         else:
-            logging.error("FAILURE %s %s" % (self.camera.name, self.final_url))
+            logger.debug("FAILURE %s %s" % (self.camera.name, self.final_url))
             raise ConnectionError
 
     def update(self):
@@ -79,9 +74,14 @@ class VideoCamera(object):
     def kill(self):
         self.live = False
         self.thread.join()
+        logger.debug(
+            "closing connection with %s %s" % (self.camera.name, self.final_url)
+        )
+        if self.video is not None:
+            self.video.release()
 
     def save_frame(self, timestamp):
-        logging.error("saving photo_%s" % str(timestamp))
+        logger.debug("saving photo_%s" % str(timestamp))
         frame = self.frame
         cv2.imwrite("~/Desktop/photo%s.png" % str(timestamp), frame)
 
