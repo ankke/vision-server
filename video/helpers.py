@@ -7,11 +7,13 @@ from video.video import active_cameras
 
 logger = logging.getLogger("root")
 
-def stop_live_feed(id_):
-    cam = active_cameras.get(id_)
+
+def stop_live_feed(id_, sub_stream):
+    key = str(id_) + sub_stream
+    cam = active_cameras.get(key)
     if cam is not None:
         cam.kill()
-        active_cameras.pop(id_)
+        active_cameras.pop(key)
     return Response()
 
 
@@ -26,16 +28,8 @@ def stop_live_feed(id_):
 #             cam.enabled = True
 #     return Response()
 
-def film_handler(id):
-    cam = active_cameras.get(id)
-    if cam is not None:
-        cam.save_frame(str(datetime.now()).replace(" ", "-"))
-    else:
-        Response("first play a camera to make a photo")
-    return Response()
-
-def photo_handler(id):
-    cam = active_cameras.get(id)
+def film_handler(id, sub_stream):
+    cam = active_cameras.get(str(id) + sub_stream)
     if cam is not None:
         cam.save_frame(str(datetime.now()).replace(" ", "-"))
     else:
@@ -43,8 +37,17 @@ def photo_handler(id):
     return Response()
 
 
-def pano_handler(id):
-    cam = active_cameras.get(id)
+def photo_handler(id, tag, sub_stream):
+    cam = active_cameras.get(str(id) + sub_stream)
+    if cam is not None:
+        cam.save_frame(tag + '_' + str(datetime.now()).replace(" ", "-"))
+    else:
+        print("first play a camera to make a photo")
+    return Response()
+
+
+def pano_handler(id, sub_stream):
+    cam = active_cameras.get(str(id) + sub_stream)
     if cam is not None:
         cam.save_frame()
     return Response()

@@ -22,6 +22,8 @@ from database.dao import (
 )
 from video.helpers import photo_handler, pano_handler, stop_live_feed, gen
 from video.video import VideoCamera, active_cameras
+from urllib.parse import unquote
+
 
 app = Flask(__name__)
 CORS(app)
@@ -54,7 +56,6 @@ def delete_camera_(id):
 
 @app.route("/camera", methods=["PUT"])
 def edit_camera_():
-    print(request.json)
     edit_camera(request.json)
     return Response()
 
@@ -101,9 +102,10 @@ def cameras_for_configuration_get(id):
 @app.route("/camera/show")
 def show():
     id = request.args.get("id")
+    sub_stream = unquote(request.args.get("sub_stream"))
     camera = get_camera_by_id(id)
     try:
-        camera = VideoCamera(camera)
+        camera = VideoCamera(camera, sub_stream)
         camera.activate()
         return Response(
             gen(camera), content_type="multipart/x-mixed-replace;boundary=frame"
@@ -120,17 +122,17 @@ def show():
 
 @app.route("/camera/photo")
 def photo():
-    return photo_handler(request.args.get("id"))
+    return photo_handler(int(request.args.get("id")), request.args.get("tag"), unquote(request.args.get("sub_stream")))
 
 
 @app.route("/camera/pano")
 def pano():
-    return pano_handler(request.args.get("id"))
+    return pano_handler(int(request.args.get("id")), unquote(request.args.get("sub_stream")))
 
 
 @app.route("/camera/kill")
 def kill():
-    return stop_live_feed(int(request.args.get("id")))
+    return stop_live_feed(int(request.args.get("id")), unquote(request.args.get("sub_stream")))
 
 
 @app.route("/settings", methods=["GET"])
@@ -159,8 +161,9 @@ if __name__ != "__main__":
     app.logger.setLevel(gunicorn_logger.level)
 
 if __name__ == "__main__":
+    logger = logging.getLogger("root")
+    logger.setLevel(logging.DEBUG)
     app.run(
         host="127.0.0.1",
         port=5000,
-        debug=True,
     )
