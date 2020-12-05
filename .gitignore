@@ -142,3 +142,4 @@ cython_debug/
 docker-compose.override.yml
 
 /photos
+/videos
