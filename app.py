@@ -134,10 +134,10 @@ def photo():
     )
 
 
-@app.route("/camera/pano")
+@app.route("/ptz/pano")
 def pano():
     return pano_handler(
-        int(request.args.get("id")), unquote(request.args.get("sub_stream"))
+        int(request.args.get("id")), request.args.get("tag"),(request.args.get("sub_stream"))
     )
 
 

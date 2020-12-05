@@ -39,26 +39,26 @@ class PTZ(object):
         sleep(timeout)
         self.ptz.Stop({"ProfileToken": self.continuous_move.ProfileToken})
 
-    def move_up(self):
+    def move_up(self, timeout=0.25):
         print("move up...")
         self.continuous_move.Velocity.PanTilt.x = 0
         self.continuous_move.Velocity.PanTilt.y = self.YMAX
-        self.perform_move(0.25)
+        self.perform_move(timeout)
 
-    def move_down(self):
+    def move_down(self, timeout=0.25):
         print("move down...")
         self.continuous_move.Velocity.PanTilt.x = 0
         self.continuous_move.Velocity.PanTilt.y = self.YMIN
-        self.perform_move(0.25)
+        self.perform_move(timeout)
 
-    def move_right(self):
+    def move_right(self, timeout=0.25):
         print("move right...")
         self.continuous_move.Velocity.PanTilt.x = self.XMAX
         self.continuous_move.Velocity.PanTilt.y = 0
-        self.perform_move(0.25)
+        self.perform_move(timeout)
 
-    def move_left(self):
+    def move_left(self, timeout=0.25):
         print("move left...")
         self.continuous_move.Velocity.PanTilt.x = self.XMIN
         self.continuous_move.Velocity.PanTilt.y = 0
-        self.perform_move(0.25)
+        self.perform_move(timeout)
