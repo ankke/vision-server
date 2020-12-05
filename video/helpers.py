@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 from time import sleep
 
-from flask import Response
+from flask import Response, jsonify
 import cv2
 
 from video.video import active_cameras
@@ -81,12 +81,10 @@ def pano_handler(id, tag, sub_stream):
         status, pano = stitcher.stitch(photos)
 
         if status != cv2.Stitcher_OK:
-            print("Can't stitch images, error code = %d" % status)
+            return jsonify("Can't stitch images, error code = %d" % status), 537
         else:
             cv2.imwrite("./photos/%s.png" % str(filename), pano)
             print("Stitching completed successfully")
-    else:
-        print("First play a camera to make a photo")
     return Response()
 
 
