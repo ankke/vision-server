@@ -28,6 +28,7 @@ def stop_live_feed(id_, sub_stream):
 #             cam.enabled = True
 #     return Response()
 
+
 def film_handler(id, sub_stream):
     cam = active_cameras.get(str(id) + sub_stream)
     if cam is not None:
@@ -40,7 +41,7 @@ def film_handler(id, sub_stream):
 def photo_handler(id, tag, sub_stream):
     cam = active_cameras.get(str(id) + sub_stream)
     if cam is not None:
-        cam.save_frame(tag + '_' + str(datetime.now()).replace(" ", "-"))
+        cam.save_frame(tag + "_" + str(datetime.now()).replace(" ", "-"))
     else:
         print("first play a camera to make a photo")
     return Response()

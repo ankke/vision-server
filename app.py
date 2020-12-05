@@ -1,12 +1,15 @@
+import eventlet
+eventlet.monkey_patch(socket=True, select=True)
+
 import json
 import logging
+from urllib.parse import unquote
 
 import simplejson
 from flask import Flask, request, Response
 from flask_cors import CORS
 
 from database.connection import db_session
-from database.encoder import AlchemyEncoder
 from database.dao import (
     get_cameras_for_configuration,
     add_camera,
@@ -18,11 +21,13 @@ from database.dao import (
     delete_configuration,
     edit_configuration,
     get_all_cameras,
-    get_all_configurations, get_settings, update_settings, create_settings,
+    get_all_configurations,
+    get_settings,
+    update_settings,
 )
+from database.encoder import AlchemyEncoder
 from video.helpers import photo_handler, pano_handler, stop_live_feed, gen
 from video.video import VideoCamera, active_cameras
-from urllib.parse import unquote
 
 
 app = Flask(__name__)
@@ -122,17 +127,25 @@ def show():
 
 @app.route("/camera/photo")
 def photo():
-    return photo_handler(int(request.args.get("id")), request.args.get("tag"), unquote(request.args.get("sub_stream")))
+    return photo_handler(
+        int(request.args.get("id")),
+        request.args.get("tag"),
+        unquote(request.args.get("sub_stream")),
+    )
 
 
 @app.route("/camera/pano")
 def pano():
-    return pano_handler(int(request.args.get("id")), unquote(request.args.get("sub_stream")))
+    return pano_handler(
+        int(request.args.get("id")), unquote(request.args.get("sub_stream"))
+    )
 
 
 @app.route("/camera/kill")
 def kill():
-    return stop_live_feed(int(request.args.get("id")), unquote(request.args.get("sub_stream")))
+    return stop_live_feed(
+        int(request.args.get("id")), unquote(request.args.get("sub_stream"))
+    )
 
 
 @app.route("/settings", methods=["GET"])
@@ -145,6 +158,34 @@ def settings_get():
 def settings_put():
     settings = update_settings(request.json)
     return simplejson.dumps(settings, cls=AlchemyEncoder)
+
+
+@app.route("/ptz/up", methods=["GET"])
+def move_up():
+    key = request.args.get("id") + unquote(request.args.get("sub_stream"))
+    camera = active_cameras[key]
+    camera.ptzcam.move_up()
+
+
+@app.route("/ptz/down", methods=["GET"])
+def move_down():
+    key = request.args.get("id") + unquote(request.args.get("sub_stream"))
+    camera = active_cameras[key]
+    camera.ptzcam.move_down()
+
+
+@app.route("/ptz/left", methods=["GET"])
+def move_left():
+    key = request.args.get("id") + unquote(request.args.get("sub_stream"))
+    camera = active_cameras[key]
+    camera.ptzcam.move_left()
+
+
+@app.route("/ptz/right", methods=["GET"])
+def move_right():
+    key = request.args.get("id") + unquote(request.args.get("sub_stream"))
+    camera = active_cameras[key]
+    camera.ptzcam.move_right()
 
 
 @app.teardown_request

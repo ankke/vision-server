@@ -50,5 +50,5 @@ class CameraConfiguration(Base):
 class Setting(Base):
     __tablename__ = "settings"
     id = Column(INTEGER, primary_key=True)
-    path = Column(VARCHAR(256), default='')
-    udp_preferred = Column(BOOLEAN, default='true')
+    path = Column(VARCHAR(256), default="")
+    udp_preferred = Column(BOOLEAN, default="true")

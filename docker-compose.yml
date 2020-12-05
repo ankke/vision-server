@@ -19,6 +19,7 @@ services:
 #      context: .
 #      dockerfile: Dockerfile
 #    environment:
+#      - FLASK_ENV=production
 #      - DB_HOST=mysql
 #      - DB_PORT=3306
 #      - DB_USER=vision_user

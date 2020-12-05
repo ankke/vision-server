@@ -1,8 +1,11 @@
 import logging
 import os
 from threading import Thread, RLock, Condition
+from time import sleep
 
 import cv2
+
+from video.ptz import PTZ
 
 environ_lock = RLock()
 active_cameras = {}
@@ -24,7 +27,11 @@ class VideoCamera(object):
         self.frame = None
         self.live = False
         self.thread = Thread(target=self.update, args=())
-
+        if camera.ptz_app:
+            print("ptz")
+            self.ptzcam = PTZ()
+        else:
+            self.ptzcam = None
 
     def activate(self):
         self.set_capture_options()
@@ -67,16 +74,15 @@ class VideoCamera(object):
             # with self.condition:
             #     if self.new_frame_available:
             #         self.condition.wait()
+            sleep(0)
             _, self.frame = self.video.read()
             self.new_frame_available = True
-                # self.condition.notifyAll()
+            # self.condition.notifyAll()
 
     def kill(self):
         self.live = False
         self.thread.join()
-        print(
-            "closing connection with %s %s" % (self.camera.name, self.final_url)
-        )
+        print("closing connection with %s %s" % (self.camera.name, self.final_url))
         if self.video is not None:
             self.video.release()
 
@@ -90,6 +96,7 @@ class VideoCamera(object):
         #     if not self.new_frame_available:
         #         self.condition.wait()
         if self.frame is not None:
+            sleep(0)
             _, jpeg = cv2.imencode(".jpg", self.frame)
             self.new_frame_available = False
             return jpeg.tobytes()
