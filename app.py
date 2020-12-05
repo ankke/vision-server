@@ -136,7 +136,8 @@ def pano():
     return pano_handler(
         int(request.args.get("id")),
         request.args.get("tag"),
-        (request.args.get("sub_stream")),
+        request.args.get("sub_stream"),
+        int(request.args.get("rot_value")),
     )
 
 
