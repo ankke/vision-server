@@ -31,12 +31,21 @@ def stop_live_feed(id_, sub_stream):
 #     return Response()
 
 
-def film_handler(id, sub_stream):
+def start_recording_handler(id, tag, sub_stream):
     cam = active_cameras.get(str(id) + sub_stream)
     if cam is not None:
-        cam.save_frame(str(datetime.now()).replace(" ", "-"))
+        filename = tag + '_video_' + str(datetime.now()).replace(" ", "-")
+        cam.start_recording("./videos/%s" % str(filename))
     else:
-        Response("first play a camera to make a photo")
+        Response("first play a camera to record a video")
+    return Response()
+
+
+def stop_recording_handler(id, sub_stream):
+    print('handler')
+    cam = active_cameras.get(str(id) + sub_stream)
+    if cam is not None:
+        cam.stop_recording()
     return Response()
 
 
@@ -50,42 +59,64 @@ def photo_handler(id, tag, sub_stream):
     return Response()
 
 
-def pano_handler(id, tag, sub_stream):
+def pano_handler(id, tag, sub_stream, rot_value):
     cam = active_cameras.get(str(id) + sub_stream)
+    if cam is None:
+        return 404
+
+    if rot_value % 2 == 1:
+        photos = pano_vertical(cam)
+    else:
+        photos = pano_horizontal(cam)
 
     stitcher = cv2.Stitcher.create(cv2.Stitcher_PANORAMA)
 
-    if cam is not None:
-        filename = tag + "_pano_" + str(datetime.now()).replace(" ", "-")
+    filename = tag + "_pano_" + str(datetime.now()).replace(" ", "-")
 
-        photos = []
-        cam.ptzcam.move_left(0.5)
-        sleep(2)
-        photos.append(cam.frame)
-        sleep(2)
-        cam.ptzcam.move_right(0.5)
-        sleep(2)
-        photos.append(cam.frame)
-        sleep(2)
-        cam.ptzcam.move_right(0.5)
-        sleep(2)
-        photos.append(cam.frame)
-        sleep(2)
-        cam.ptzcam.move_left(0.5)
-        i = 1
+    status, pano = stitcher.stitch(photos)
 
-        for p in photos:
-            cv2.imwrite("./photos/%s.png" % str(i), p)
-            i += 1
-
-        status, pano = stitcher.stitch(photos)
-
-        if status != cv2.Stitcher_OK:
-            return jsonify("Can't stitch images, error code = %d" % status), 537
-        else:
-            cv2.imwrite("./photos/%s.png" % str(filename), pano)
-            print("Stitching completed successfully")
+    if status != cv2.Stitcher_OK:
+        return jsonify("Can't stitch images, error code = %d" % status), 537
+    else:
+        cv2.imwrite("./photos/%s.png" % str(filename), pano)
+        print("Stitching completed successfully")
     return Response()
+
+
+def pano_horizontal(cam):
+    photos = []
+    cam.ptzcam.move_left(0.5)
+    sleep(2)
+    photos.append(cam.frame)
+    sleep(2)
+    cam.ptzcam.move_right(0.5)
+    sleep(2)
+    photos.append(cam.frame)
+    sleep(2)
+    cam.ptzcam.move_right(0.5)
+    sleep(2)
+    photos.append(cam.frame)
+    sleep(2)
+    cam.ptzcam.move_left(0.5)
+    return photos
+
+
+def pano_vertical(cam):
+    photos = []
+    cam.ptzcam.move_up(0.5)
+    sleep(2)
+    photos.append(cv2.rotate(cam.frame, cv2.ROTATE_90_CLOCKWISE))
+    sleep(2)
+    cam.ptzcam.move_down(0.5)
+    sleep(2)
+    photos.append(cv2.rotate(cam.frame, cv2.ROTATE_90_CLOCKWISE))
+    sleep(2)
+    cam.ptzcam.move_down(0.5)
+    sleep(2)
+    photos.append(cv2.rotate(cam.frame, cv2.ROTATE_90_CLOCKWISE))
+    sleep(2)
+    cam.ptzcam.move_up(0.5)
+    return photos
 
 
 def gen(cam):

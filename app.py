@@ -23,9 +23,8 @@ from database.dao import (
     update_settings,
 )
 from database.encoder import AlchemyEncoder
-from video.helpers import photo_handler, pano_handler, stop_live_feed, gen
+from video.helpers import photo_handler, pano_handler, stop_live_feed, gen, start_recording_handler, stop_recording_handler
 from video.video import VideoCamera, active_cameras
-
 
 app = Flask(__name__)
 CORS(app)
@@ -117,11 +116,6 @@ def show():
         return Response()
 
 
-# @app.route("/cameras/refresh")
-# def refresh():
-#     return refresh_handler()
-
-
 @app.route("/camera/photo")
 def photo():
     return photo_handler(
@@ -131,12 +125,30 @@ def photo():
     )
 
 
+@app.route("/camera/start")
+def start_recording():
+    return start_recording_handler(
+        int(request.args.get("id")),
+        request.args.get("tag"),
+        unquote(request.args.get("sub_stream")),
+    )
+
+
+@app.route("/camera/stop")
+def stop_recording():
+    return stop_recording_handler(
+        int(request.args.get("id")),
+        unquote(request.args.get("sub_stream")),
+    )
+
+
 @app.route("/ptz/pano")
 def pano():
     return pano_handler(
         int(request.args.get("id")),
         request.args.get("tag"),
-        (request.args.get("sub_stream")),
+        request.args.get("sub_stream"),
+        int(request.args.get("rot_value")),
     )
 
 
@@ -164,6 +176,7 @@ def move_up():
     key = request.args.get("id") + unquote(request.args.get("sub_stream"))
     camera = active_cameras[key]
     camera.ptzcam.move_up()
+    return Response()
 
 
 @app.route("/ptz/down", methods=["GET"])
@@ -171,6 +184,7 @@ def move_down():
     key = request.args.get("id") + unquote(request.args.get("sub_stream"))
     camera = active_cameras[key]
     camera.ptzcam.move_down()
+    return Response()
 
 
 @app.route("/ptz/left", methods=["GET"])
@@ -178,6 +192,7 @@ def move_left():
     key = request.args.get("id") + unquote(request.args.get("sub_stream"))
     camera = active_cameras[key]
     camera.ptzcam.move_left()
+    return Response()
 
 
 @app.route("/ptz/right", methods=["GET"])
@@ -185,6 +200,7 @@ def move_right():
     key = request.args.get("id") + unquote(request.args.get("sub_stream"))
     camera = active_cameras[key]
     camera.ptzcam.move_right()
+    return Response()
 
 
 @app.teardown_request
