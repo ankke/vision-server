@@ -1,33 +1,21 @@
+import logging
 from datetime import datetime
+from time import sleep
 
-from flask import Response
+from flask import Response, jsonify
+import cv2
 
-from database.dao import get_camera_by_id
-from video.video import active_cameras, VideoCamera
+from video.video import active_cameras
 
-
-def live_feed(id):
-    camera = get_camera_by_id(id)
-
-    try:
-        camera = VideoCamera(camera)
-        active_cameras[id] = camera
-        return gen(camera)
-
-        # return Response(gen(camera), content_type="multipart/x-mixed-replace;boundary=frame")
-    except ConnectionError:
-        print("closing tab")
-        camera.kill()
-        del camera
-        return Response()
+logger = logging.getLogger("root")
 
 
-def stop_live_feed(id):
-    cam = active_cameras.get(id)
+def stop_live_feed(id_, sub_stream):
+    key = str(id_) + sub_stream
+    cam = active_cameras.get(key)
     if cam is not None:
         cam.kill()
-        active_cameras.pop(id)
-    del cam
+        active_cameras.pop(key)
     return Response()
 
 
@@ -43,19 +31,60 @@ def stop_live_feed(id):
 #     return Response()
 
 
-def photo_handler(id):
-    cam = active_cameras.get(id)
+def film_handler(id, sub_stream):
+    cam = active_cameras.get(str(id) + sub_stream)
     if cam is not None:
         cam.save_frame(str(datetime.now()).replace(" ", "-"))
+    else:
+        Response("first play a camera to make a photo")
+    return Response()
+
+
+def photo_handler(id, tag, sub_stream):
+    cam = active_cameras.get(str(id) + sub_stream)
+    print(cam)
+    if cam is not None:
+        cam.save_frame(tag + "_" + str(datetime.now()).replace(" ", "-"))
     else:
         print("first play a camera to make a photo")
     return Response()
 
 
-def pano_handler(id):
-    cam = active_cameras.get(id)
+def pano_handler(id, tag, sub_stream):
+    cam = active_cameras.get(str(id) + sub_stream)
+
+    stitcher = cv2.Stitcher.create(cv2.Stitcher_PANORAMA)
+
     if cam is not None:
-        cam.save_frame()
+        filename = tag + "_pano_" + str(datetime.now()).replace(" ", "-")
+
+        photos = []
+        cam.ptzcam.move_left(0.5)
+        sleep(2)
+        photos.append(cam.frame)
+        sleep(2)
+        cam.ptzcam.move_right(0.5)
+        sleep(2)
+        photos.append(cam.frame)
+        sleep(2)
+        cam.ptzcam.move_right(0.5)
+        sleep(2)
+        photos.append(cam.frame)
+        sleep(2)
+        cam.ptzcam.move_left(0.5)
+        i = 1
+
+        for p in photos:
+            cv2.imwrite("./photos/%s.png" % str(i), p)
+            i += 1
+
+        status, pano = stitcher.stitch(photos)
+
+        if status != cv2.Stitcher_OK:
+            return jsonify("Can't stitch images, error code = %d" % status), 537
+        else:
+            cv2.imwrite("./photos/%s.png" % str(filename), pano)
+            print("Stitching completed successfully")
     return Response()
 
 

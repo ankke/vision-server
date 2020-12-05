@@ -1,8 +1,12 @@
+import logging
+
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.exc import NoResultFound
 
 from database.connection import db_session
 from database.models import *
+
+logger = logging.getLogger("root")
 
 
 def add_camera(json):
@@ -56,9 +60,12 @@ def get_configuration_by_id(id):
 
 
 def get_cameras_for_configuration(configuration_id):
-    cameras = db_session.query(Camera).join(CameraConfiguration).filter(
-        CameraConfiguration.configuration_id == configuration_id
-    ).all()
+    cameras = (
+        db_session.query(Camera)
+        .join(CameraConfiguration)
+        .filter(CameraConfiguration.configuration_id == configuration_id)
+        .all()
+    )
     result = []
     for camera in cameras:
         result.append(
@@ -164,3 +171,21 @@ def get_all_configurations():
             }
         )
     return result
+
+
+def get_settings():
+    return db_session.query(Setting).one()
+
+
+def update_settings(json):
+    logger.debug(json)
+    settings = db_session.query(Setting).one()
+    settings.path = json["path"]
+    settings.udp_preferred = json["udp_preferred"]
+    db_session.commit()
+
+
+def create_settings(json):
+    settings = Setting(path=json["path"], udp_preferred=json["udp_preferred"])
+    db_session.add(settings)
+    db_session.commit()

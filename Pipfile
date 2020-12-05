@@ -16,6 +16,8 @@ flask-cors = "*"
 flask-socketio = "*"
 gunicorn = "*"
 PyMySQL = "*"
+flake8 = "*"
+onvif-zeep = "*"
 
 [requires]
 python_version = "3.7"
