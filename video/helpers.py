@@ -31,12 +31,21 @@ def stop_live_feed(id_, sub_stream):
 #     return Response()
 
 
-def film_handler(id, sub_stream):
+def start_recording_handler(id, tag, sub_stream):
     cam = active_cameras.get(str(id) + sub_stream)
     if cam is not None:
-        cam.save_frame(str(datetime.now()).replace(" ", "-"))
+        filename = tag + '_video_' + str(datetime.now()).replace(" ", "-")
+        cam.start_recording("./videos/%s" % str(filename))
     else:
-        Response("first play a camera to make a photo")
+        Response("first play a camera to record a video")
+    return Response()
+
+
+def stop_recording_handler(id, sub_stream):
+    print('handler')
+    cam = active_cameras.get(str(id) + sub_stream)
+    if cam is not None:
+        cam.stop_recording()
     return Response()
 
 

@@ -23,9 +23,8 @@ from database.dao import (
     update_settings,
 )
 from database.encoder import AlchemyEncoder
-from video.helpers import photo_handler, pano_handler, stop_live_feed, gen
+from video.helpers import photo_handler, pano_handler, stop_live_feed, gen, start_recording_handler, stop_recording_handler
 from video.video import VideoCamera, active_cameras
-
 
 app = Flask(__name__)
 CORS(app)
@@ -117,16 +116,28 @@ def show():
         return Response()
 
 
-# @app.route("/cameras/refresh")
-# def refresh():
-#     return refresh_handler()
-
-
 @app.route("/camera/photo")
 def photo():
     return photo_handler(
         int(request.args.get("id")),
         request.args.get("tag"),
+        unquote(request.args.get("sub_stream")),
+    )
+
+
+@app.route("/camera/start")
+def start_recording():
+    return start_recording_handler(
+        int(request.args.get("id")),
+        request.args.get("tag"),
+        unquote(request.args.get("sub_stream")),
+    )
+
+
+@app.route("/camera/stop")
+def stop_recording():
+    return stop_recording_handler(
+        int(request.args.get("id")),
         unquote(request.args.get("sub_stream")),
     )
 

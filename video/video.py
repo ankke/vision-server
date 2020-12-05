@@ -5,6 +5,7 @@ from time import sleep
 
 import cv2
 
+from database.dao import get_settings
 from video.ptz import PTZ
 
 environ_lock = RLock()
@@ -18,15 +19,15 @@ class VideoCamera(object):
         self.sub_stream = sub_stream
         self.condition = Condition()
         self.final_url = self.camera.url + sub_stream + self.camera.suffix
-        # self.url = (
-        #     "rtsp://admin:AGHspace@192.168.0.54/cam/realmonitor?channel=1&subtype=0"
-        # )
         self.active = False
         self.video = None
         self.new_frame_available = False
         self.frame = None
         self.live = False
         self.thread = Thread(target=self.update, args=())
+        self.file_writer = None
+        self.saving = False
+        self.thread_write = Thread(target=self.save_video, args=())
         if camera.ptz_app:
             print("ptz")
             self.ptzcam = PTZ()
@@ -44,8 +45,9 @@ class VideoCamera(object):
         self.thread.start()
 
     def set_capture_options(self):
+        settings = get_settings()
         with environ_lock:
-            if self.camera.udp_supported:
+            if self.camera.udp_supported and settings.udp_preferred:
                 os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;udp"
                 logger.debug(
                     "establishing udp connection for %s %s"
@@ -104,3 +106,26 @@ class VideoCamera(object):
 
     def is_live(self):
         return self.active
+
+    def save_video(self):
+        while self.saving:
+            self.file_writer.write(self.frame)
+
+    def start_recording(self, filename):
+        self.saving = True
+        frame_width = int(self.video.get(3))
+        frame_height = int(self.video.get(4))
+
+        size = (frame_width, frame_height)
+
+        self.file_writer = cv2.VideoWriter('{}.avi'.format(filename),
+                                           cv2.VideoWriter_fourcc(*'MJPG'),
+                                           30.0, size)
+        self.thread_write.start()
+
+    def stop_recording(self):
+        self.saving = False
+        self.thread_write.join()
+        if self.file_writer is not None:
+            self.file_writer.release()
+
