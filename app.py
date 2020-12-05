@@ -1,6 +1,3 @@
-import eventlet
-eventlet.monkey_patch(socket=True, select=True)
-
 import json
 import logging
 from urllib.parse import unquote
@@ -137,7 +134,9 @@ def photo():
 @app.route("/ptz/pano")
 def pano():
     return pano_handler(
-        int(request.args.get("id")), request.args.get("tag"),(request.args.get("sub_stream"))
+        int(request.args.get("id")),
+        request.args.get("tag"),
+        (request.args.get("sub_stream")),
     )
 
 

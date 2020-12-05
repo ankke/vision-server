@@ -5,7 +5,7 @@ from onvif import ONVIFCamera
 
 class PTZ(object):
     def __init__(self):
-        self.mycam = ONVIFCamera('192.168.0.53', 80, 'admin', 'AGHspace')
+        self.mycam = ONVIFCamera("192.168.0.53", 80, "admin", "AGHspace")
 
         self.media = self.mycam.create_media_service()
         self.media_profile = self.media.GetProfiles()[0]
@@ -15,7 +15,7 @@ class PTZ(object):
         request.ConfigurationToken = self.media_profile.PTZConfiguration.token
         ptz_configuration_options = self.ptz.GetConfigurationOptions(request)
 
-        self.continuous_move = self.ptz.create_type('ContinuousMove')
+        self.continuous_move = self.ptz.create_type("ContinuousMove")
         self.continuous_move.ProfileToken = self.media_profile.token
 
         self.continuous_move.Velocity = self.ptz.GetStatus(
@@ -29,10 +29,18 @@ class PTZ(object):
             ptz_configuration_options.Spaces.ContinuousZoomVelocitySpace[0].URI
         )
 
-        self.XMAX = ptz_configuration_options.Spaces.ContinuousPanTiltVelocitySpace[0].XRange.Max
-        self.XMIN = ptz_configuration_options.Spaces.ContinuousPanTiltVelocitySpace[0].XRange.Min
-        self.YMAX = ptz_configuration_options.Spaces.ContinuousPanTiltVelocitySpace[0].YRange.Max
-        self.YMIN = ptz_configuration_options.Spaces.ContinuousPanTiltVelocitySpace[0].YRange.Min
+        self.XMAX = ptz_configuration_options.Spaces.ContinuousPanTiltVelocitySpace[
+            0
+        ].XRange.Max
+        self.XMIN = ptz_configuration_options.Spaces.ContinuousPanTiltVelocitySpace[
+            0
+        ].XRange.Min
+        self.YMAX = ptz_configuration_options.Spaces.ContinuousPanTiltVelocitySpace[
+            0
+        ].YRange.Max
+        self.YMIN = ptz_configuration_options.Spaces.ContinuousPanTiltVelocitySpace[
+            0
+        ].YRange.Min
 
     def perform_move(self, timeout):
         self.ptz.ContinuousMove(self.continuous_move)
