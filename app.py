@@ -176,6 +176,7 @@ def move_up():
     key = request.args.get("id") + unquote(request.args.get("sub_stream"))
     camera = active_cameras[key]
     camera.ptzcam.move_up()
+    return Response()
 
 
 @app.route("/ptz/down", methods=["GET"])
@@ -183,6 +184,7 @@ def move_down():
     key = request.args.get("id") + unquote(request.args.get("sub_stream"))
     camera = active_cameras[key]
     camera.ptzcam.move_down()
+    return Response()
 
 
 @app.route("/ptz/left", methods=["GET"])
@@ -190,6 +192,7 @@ def move_left():
     key = request.args.get("id") + unquote(request.args.get("sub_stream"))
     camera = active_cameras[key]
     camera.ptzcam.move_left()
+    return Response()
 
 
 @app.route("/ptz/right", methods=["GET"])
@@ -197,6 +200,7 @@ def move_right():
     key = request.args.get("id") + unquote(request.args.get("sub_stream"))
     camera = active_cameras[key]
     camera.ptzcam.move_right()
+    return Response()
 
 
 @app.teardown_request
