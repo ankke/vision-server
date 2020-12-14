@@ -26,7 +26,7 @@ def upgrade():
         sa.Column("suffix", mysql.VARCHAR(length=128), nullable=True),
         sa.Column("ip_address", mysql.VARCHAR(length=128), nullable=True),
         sa.Column("udp_supported", sa.BOOLEAN(), nullable=True),
-        sa.Column("ptz_app", sa.BOOLEAN(), nullable=True),
+        sa.Column("ptz", sa.BOOLEAN(), nullable=True),
         sa.Column("enabled", sa.BOOLEAN(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
     )

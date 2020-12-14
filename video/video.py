@@ -28,13 +28,17 @@ class VideoCamera(object):
         self.file_writer = None
         self.saving = False
         self.thread_write = Thread(target=self.save_video, args=())
-        if camera.ptz_app:
-            print("ptz")
-            self.ptzcam = PTZ()
+        if camera.ptz:
+            try:
+                print("ptz")
+                self.ptzcam = PTZ()
+            except:
+                pass
         else:
             self.ptzcam = None
 
     def activate(self):
+        print('activate')
         self.set_capture_options()
         thread = Thread(target=self.connect(), args=())
         thread.start()
@@ -81,7 +85,7 @@ class VideoCamera(object):
             self.new_frame_available = True
             # self.condition.notifyAll()
 
-    def kill(self):
+    def deactivate(self):
         self.live = False
         self.thread.join()
         print("closing connection with %s %s" % (self.camera.name, self.final_url))
@@ -128,4 +132,3 @@ class VideoCamera(object):
         self.thread_write.join()
         if self.file_writer is not None:
             self.file_writer.release()
-

@@ -14,7 +14,7 @@ def stop_live_feed(id_, sub_stream):
     key = str(id_) + sub_stream
     cam = active_cameras.get(key)
     if cam is not None:
-        cam.kill()
+        cam.deactivate()
         active_cameras.pop(key)
     return Response()
 
@@ -35,7 +35,7 @@ def start_recording_handler(id, tag, sub_stream):
     cam = active_cameras.get(str(id) + sub_stream)
     if cam is not None:
         filename = tag + '_video_' + str(datetime.now()).replace(" ", "-")
-        cam.start_recording("./videos/%s" % str(filename))
+        cam.start_recording("./photos/%s" % str(filename))
     else:
         Response("first play a camera to record a video")
     return Response()
@@ -61,6 +61,7 @@ def photo_handler(id, tag, sub_stream):
 
 def pano_handler(id, tag, sub_stream, rot_value):
     cam = active_cameras.get(str(id) + sub_stream)
+
     if cam is None:
         return 404
 
@@ -86,18 +87,22 @@ def pano_handler(id, tag, sub_stream, rot_value):
 def pano_horizontal(cam):
     photos = []
     cam.ptzcam.move_left(0.5)
-    sleep(2)
+    sleep(4)
     photos.append(cam.frame)
     sleep(2)
     cam.ptzcam.move_right(0.5)
-    sleep(2)
+    sleep(4)
     photos.append(cam.frame)
     sleep(2)
     cam.ptzcam.move_right(0.5)
-    sleep(2)
+    sleep(4)
     photos.append(cam.frame)
     sleep(2)
     cam.ptzcam.move_left(0.5)
+    i = 0
+    for p in photos:
+        cv2.imwrite("./photos/%s.png" % str(i), p)
+        i += 1
     return photos
 
 
@@ -119,8 +124,11 @@ def pano_vertical(cam):
     return photos
 
 
-def gen(cam):
+def stream(camera):
     while True:
-        frame = cam.get_frame_bytes()
+        frame = camera.get_frame_bytes()
         if frame is not None:
-            yield b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + frame + b"\r\n\r\n"
+            yield \
+                b"--frame\r\nContent-Type: image/jpeg\r\n\r\n"\
+                + frame + \
+                b"\r\n\r\n"

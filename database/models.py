@@ -14,14 +14,14 @@ class Camera(Base):
     suffix = Column(VARCHAR(128), default=" ")
     ip_address = Column(VARCHAR(128))
     udp_supported = Column(BOOLEAN)
-    ptz_app = Column(BOOLEAN)
+    ptz = Column(BOOLEAN)
     enabled = Column(BOOLEAN)
     configurations = relationship("CameraConfiguration", cascade="all,delete")
     sub_streams = relationship("CameraSubStream", cascade="all, delete")
 
 
 class CameraSubStream(Base):
-    __tablename__ = "camera_sub_streams"
+    __tablename__ = "camera_sub_stream"
     id = Column(INTEGER, primary_key=True)
     camera = Column(
         INTEGER,
@@ -40,7 +40,7 @@ class Configuration(Base):
 
 
 class CameraConfiguration(Base):
-    __tablename__ = "cameras_configurations"
+    __tablename__ = "camera_configuration"
     camera_id = Column(INTEGER, ForeignKey("cameras.id"), primary_key=True)
     configuration_id = Column(
         INTEGER, ForeignKey("configurations.id"), primary_key=True

@@ -76,7 +76,7 @@ def get_cameras_for_configuration(configuration_id):
                 "suffix": camera.suffix,
                 "ip_address": camera.ip_address,
                 "udp_supported": camera.udp_supported,
-                "ptz_app": camera.ptz_app,
+                "ptz": camera.ptz,
                 "enabled": camera.enabled,
                 "sub_streams": list(
                     map(lambda sub: sub.sub_stream, camera.sub_streams)
@@ -143,7 +143,7 @@ def get_all_cameras():
                 "suffix": camera.suffix,
                 "ip_address": camera.ip_address,
                 "udp_supported": camera.udp_supported,
-                "ptz_app": camera.ptz_app,
+                "ptz": camera.ptz,
                 "enabled": camera.enabled,
                 "sub_streams": list(
                     map(lambda sub: sub.sub_stream, camera.sub_streams)

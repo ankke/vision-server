@@ -23,7 +23,7 @@ from database.dao import (
     update_settings,
 )
 from database.encoder import AlchemyEncoder
-from video.helpers import photo_handler, pano_handler, stop_live_feed, gen, start_recording_handler, stop_recording_handler
+from video.helpers import photo_handler, pano_handler, stop_live_feed, start_recording_handler, stop_recording_handler, stream
 from video.video import VideoCamera, active_cameras
 
 app = Flask(__name__)
@@ -61,8 +61,9 @@ def edit_camera_():
     return Response()
 
 
-@app.route("/cameras", methods=["GET"])
+@app.route("/cameras")
 def get_cameras():
+    print(get_all_cameras())
     return json.dumps(get_all_cameras())
 
 
@@ -100,20 +101,17 @@ def cameras_for_configuration_get(id):
     return json.dumps(get_cameras_for_configuration(id))
 
 
-@app.route("/camera/show")
-def show():
-    id = request.args.get("id")
+@app.route("/camera/stream", methods=["GET"])
+def camera_stream():
+    camera_id = request.args.get("id")
     sub_stream = unquote(request.args.get("sub_stream"))
-    camera = get_camera_by_id(id)
-    try:
-        camera = VideoCamera(camera, sub_stream)
-        camera.activate()
-        return Response(
-            gen(camera), content_type="multipart/x-mixed-replace;boundary=frame"
-        )
-    except ConnectionError:
-        camera.kill()
-        return Response()
+    camera = get_camera_by_id(camera_id)
+    video_camera = VideoCamera(camera, sub_stream)
+    video_camera.activate()
+    return Response(
+        stream(video_camera),
+        content_type="multipart/x-mixed-replace;boundary=frame"
+    )
 
 
 @app.route("/camera/photo")
@@ -220,6 +218,6 @@ if __name__ == "__main__":
     logger = logging.getLogger("root")
     logger.setLevel(logging.DEBUG)
     app.run(
-        host="127.0.0.1",
+        host="0.0.0.0",
         port=5000,
     )
