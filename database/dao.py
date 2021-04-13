@@ -12,11 +12,21 @@ logger = logging.getLogger("root")
 def add_camera(json):
     sub_streams = json["sub_streams"]
     json.pop("sub_streams")
+    auth_url = ''
+    port = ''
+    if json["login"] != '':
+        auth_url = f'{json["login"]}:{json["password"]}@'
+    else:
+        json.pop("login")
+    if json["port"] != '':
+        port = f':{json["port"]}'
+    else:
+        json.pop("port")
+    if json["ptz_port"] == '':
+        json.pop("ptz_port")
+    url = f'rtsp://{auth_url}{json["ip_address"]}{port}'
     camera = Camera(**json)
-    auth_url = (
-        f'{json["login"]}:{json["password"]}@' if json["login"] is not None else ""
-    )
-    url = f'rtsp://{auth_url}{json["ip_address"]}:{json["port"]}'
+
     camera.url = url
     db_session.add(camera)
     db_session.flush()
