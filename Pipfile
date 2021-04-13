@@ -4,8 +4,9 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-black = "==20.8b1"
 alembic = "*"
+black = "==20.8b1"
+flake8 = "*"
 
 [packages]
 flask = "*"
@@ -16,8 +17,8 @@ flask-cors = "*"
 flask-socketio = "*"
 gunicorn = "*"
 PyMySQL = "*"
-flake8 = "*"
 onvif-zeep = "*"
+black = "==20.8b1"
 
 [requires]
 python_version = "3.7"

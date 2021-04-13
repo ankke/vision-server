@@ -23,8 +23,15 @@ from database.dao import (
     update_settings,
 )
 from database.encoder import AlchemyEncoder
-from video.helpers import photo_handler, pano_handler, stop_live_feed, start_recording_handler, stop_recording_handler, stream
-from video.video import VideoCamera, active_cameras
+from video.helpers import (
+    photo_handler,
+    pano_handler,
+    stop_live_feed,
+    start_recording_handler,
+    stop_recording_handler,
+    stream,
+)
+from video.video_camera import VideoCamera, active_cameras
 
 app = Flask(__name__)
 CORS(app)
@@ -37,9 +44,9 @@ def health_check():
     return "Healthy"
 
 
-@app.route("/camera/<id>", methods=["GET"])
-def get_camera(id):
-    camera = get_camera_by_id(id)
+@app.route("/camera/<id_>", methods=["GET"])
+def get_camera(id_):
+    camera = get_camera_by_id(id_)
     return simplejson.dumps(camera, cls=AlchemyEncoder)
 
 
@@ -49,9 +56,9 @@ def add_camera_():
     return simplejson.dumps(new_camera, cls=AlchemyEncoder)
 
 
-@app.route("/camera/<id>", methods=["DELETE"])
-def delete_camera_(id):
-    delete_camera(id)
+@app.route("/camera/<id_>", methods=["DELETE"])
+def delete_camera_(id_):
+    delete_camera(id_)
     return Response()
 
 
@@ -63,7 +70,6 @@ def edit_camera_():
 
 @app.route("/cameras")
 def get_cameras():
-    print(get_all_cameras())
     return json.dumps(get_all_cameras())
 
 
@@ -73,15 +79,15 @@ def configuration_post():
     return Response()
 
 
-@app.route("/configuration/<id>", methods=["GET"])
-def get_configuration(id):
-    camera = get_configuration_by_id(id)
+@app.route("/configuration/<id_>", methods=["GET"])
+def get_configuration(id_):
+    camera = get_configuration_by_id(id_)
     return simplejson.dumps(camera, cls=AlchemyEncoder)
 
 
-@app.route("/configuration/<id>", methods=["DELETE"])
-def configuration_delete(id):
-    delete_configuration(id)
+@app.route("/configuration/<id_>", methods=["DELETE"])
+def configuration_delete(id_):
+    delete_configuration(id_)
     return Response()
 
 
@@ -96,9 +102,9 @@ def configurations_get():
     return json.dumps(get_all_configurations())
 
 
-@app.route("/configuration/<id>/cameras", methods=["GET"])
-def cameras_for_configuration_get(id):
-    return json.dumps(get_cameras_for_configuration(id))
+@app.route("/configuration/<id_>/cameras", methods=["GET"])
+def cameras_for_configuration_get(id_):
+    return json.dumps(get_cameras_for_configuration(id_))
 
 
 @app.route("/camera/stream", methods=["GET"])
@@ -109,8 +115,7 @@ def camera_stream():
     video_camera = VideoCamera(camera, sub_stream)
     video_camera.activate()
     return Response(
-        stream(video_camera),
-        content_type="multipart/x-mixed-replace;boundary=frame"
+        stream(video_camera), content_type="multipart/x-mixed-replace;boundary=frame"
     )
 
 
@@ -173,7 +178,7 @@ def settings_put():
 def move_up():
     key = request.args.get("id") + unquote(request.args.get("sub_stream"))
     camera = active_cameras[key]
-    camera.ptzcam.move_up()
+    camera.ptz_cam.move_up()
     return Response()
 
 
@@ -181,7 +186,7 @@ def move_up():
 def move_down():
     key = request.args.get("id") + unquote(request.args.get("sub_stream"))
     camera = active_cameras[key]
-    camera.ptzcam.move_down()
+    camera.ptz_cam.move_down()
     return Response()
 
 
@@ -189,7 +194,7 @@ def move_down():
 def move_left():
     key = request.args.get("id") + unquote(request.args.get("sub_stream"))
     camera = active_cameras[key]
-    camera.ptzcam.move_left()
+    camera.ptz_cam.move_left()
     return Response()
 
 
@@ -197,12 +202,12 @@ def move_left():
 def move_right():
     key = request.args.get("id") + unquote(request.args.get("sub_stream"))
     camera = active_cameras[key]
-    camera.ptzcam.move_right()
+    camera.ptz_cam.move_right()
     return Response()
 
 
 @app.teardown_request
-def teardown_db(exception):
+def teardown_db(_exception):
     db_session.remove()
 
 

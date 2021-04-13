@@ -13,6 +13,11 @@ def add_camera(json):
     sub_streams = json["sub_streams"]
     json.pop("sub_streams")
     camera = Camera(**json)
+    auth_url = (
+        f'{json["login"]}:{json["password"]}@' if json["login"] is not None else ""
+    )
+    url = f'rtsp://{auth_url}{json["ip_address"]}:{json["port"]}'
+    camera.url = url
     db_session.add(camera)
     db_session.flush()
     for sub_stream in sub_streams:
@@ -52,7 +57,7 @@ def delete_camera(id):
         db_session.delete(camera)
         db_session.commit()
     except NoResultFound:
-        print("no camera with id: " + id)
+        logger.info("no camera with id: " + id)
 
 
 def get_configuration_by_id(id):
@@ -179,7 +184,7 @@ def get_settings():
 
 def update_settings(json):
     logger.debug(json)
-    settings = db_session.query(Setting).one()
+    settings = db_session.query(Setting).first()
     settings.path = json["path"]
     settings.udp_preferred = json["udp_preferred"]
     db_session.commit()

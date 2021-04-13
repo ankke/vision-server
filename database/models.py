@@ -13,11 +13,15 @@ class Camera(Base):
     url = Column(VARCHAR(128))
     suffix = Column(VARCHAR(128), default=" ")
     ip_address = Column(VARCHAR(128))
+    ptz_port = Column(INTEGER)
+    port = Column(INTEGER)
+    password = Column(VARCHAR(128))
+    login = Column(VARCHAR(128))
     udp_supported = Column(BOOLEAN)
     ptz = Column(BOOLEAN)
     enabled = Column(BOOLEAN)
     configurations = relationship("CameraConfiguration", cascade="all,delete")
-    sub_streams = relationship("CameraSubStream", cascade="all, delete")
+    sub_streams = relationship("CameraSubStream", cascade="all,delete")
 
 
 class CameraSubStream(Base):

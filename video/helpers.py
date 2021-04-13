@@ -5,7 +5,7 @@ from time import sleep
 from flask import Response, jsonify
 import cv2
 
-from video.video import active_cameras
+from video.video_camera import active_cameras
 
 logger = logging.getLogger("root")
 
@@ -19,6 +19,7 @@ def stop_live_feed(id_, sub_stream):
     return Response()
 
 
+# not used
 # def refresh_handler():
 #     for cam in get_all_cameras():
 #         cam.enabled = True
@@ -31,36 +32,36 @@ def stop_live_feed(id_, sub_stream):
 #     return Response()
 
 
-def start_recording_handler(id, tag, sub_stream):
-    cam = active_cameras.get(str(id) + sub_stream)
+def start_recording_handler(id_, tag, sub_stream):
+    cam = active_cameras.get(str(id_) + sub_stream)
     if cam is not None:
-        filename = tag + '_video_' + str(datetime.now()).replace(" ", "-")
+        filename = tag + "_video_" + str(datetime.now()).replace(" ", "-")
         cam.start_recording("./photos/%s" % str(filename))
     else:
         Response("first play a camera to record a video")
     return Response()
 
 
-def stop_recording_handler(id, sub_stream):
-    print('handler')
-    cam = active_cameras.get(str(id) + sub_stream)
+def stop_recording_handler(id_, sub_stream):
+    logger.debug("stop recording")
+    cam = active_cameras.get(str(id_) + sub_stream)
     if cam is not None:
         cam.stop_recording()
     return Response()
 
 
-def photo_handler(id, tag, sub_stream):
-    cam = active_cameras.get(str(id) + sub_stream)
-    print(cam)
+def photo_handler(id_, tag, sub_stream):
+    cam = active_cameras.get(str(id_) + sub_stream)
+    logger.debug(f"taking photo for {cam}")
     if cam is not None:
         cam.save_frame(tag + "_" + str(datetime.now()).replace(" ", "-"))
     else:
-        print("first play a camera to make a photo")
+        logger.debug("first play a camera to take a photo")
     return Response()
 
 
-def pano_handler(id, tag, sub_stream, rot_value):
-    cam = active_cameras.get(str(id) + sub_stream)
+def pano_handler(id_, tag, sub_stream, rot_value):
+    cam = active_cameras.get(str(id_) + sub_stream)
 
     if cam is None:
         return 404
@@ -80,25 +81,25 @@ def pano_handler(id, tag, sub_stream, rot_value):
         return jsonify("Can't stitch images, error code = %d" % status), 537
     else:
         cv2.imwrite("./photos/%s.png" % str(filename), pano)
-        print("Stitching completed successfully")
+        logger.debug("Stitching completed successfully")
     return Response()
 
 
 def pano_horizontal(cam):
     photos = []
-    cam.ptzcam.move_left(0.5)
+    cam.ptz_cam.move_left(0.5)
     sleep(4)
     photos.append(cam.frame)
     sleep(2)
-    cam.ptzcam.move_right(0.5)
+    cam.ptz_cam.move_right(0.5)
     sleep(4)
     photos.append(cam.frame)
     sleep(2)
-    cam.ptzcam.move_right(0.5)
+    cam.ptz_cam.move_right(0.5)
     sleep(4)
     photos.append(cam.frame)
     sleep(2)
-    cam.ptzcam.move_left(0.5)
+    cam.ptz_cam.move_left(0.5)
     i = 0
     for p in photos:
         cv2.imwrite("./photos/%s.png" % str(i), p)
@@ -108,19 +109,19 @@ def pano_horizontal(cam):
 
 def pano_vertical(cam):
     photos = []
-    cam.ptzcam.move_up(0.5)
+    cam.ptz_cam.move_up(0.5)
     sleep(2)
     photos.append(cv2.rotate(cam.frame, cv2.ROTATE_90_CLOCKWISE))
     sleep(2)
-    cam.ptzcam.move_down(0.5)
+    cam.ptz_cam.move_down(0.5)
     sleep(2)
     photos.append(cv2.rotate(cam.frame, cv2.ROTATE_90_CLOCKWISE))
     sleep(2)
-    cam.ptzcam.move_down(0.5)
+    cam.ptz_cam.move_down(0.5)
     sleep(2)
     photos.append(cv2.rotate(cam.frame, cv2.ROTATE_90_CLOCKWISE))
     sleep(2)
-    cam.ptzcam.move_up(0.5)
+    cam.ptz_cam.move_up(0.5)
     return photos
 
 
@@ -128,7 +129,4 @@ def stream(camera):
     while True:
         frame = camera.get_frame_bytes()
         if frame is not None:
-            yield \
-                b"--frame\r\nContent-Type: image/jpeg\r\n\r\n"\
-                + frame + \
-                b"\r\n\r\n"
+            yield b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + frame + b"\r\n\r\n"
