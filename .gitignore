@@ -139,7 +139,5 @@ cython_debug/
 
 .idea
 
-docker-compose.override.yml
-
 /photos
 /videos

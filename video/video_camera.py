@@ -24,23 +24,27 @@ class VideoCamera(object):
         self.new_frame_available = False
         self.frame = None
         self.live = False
-        self.thread = Thread(target=self.update, args=())
+        self.thread = Thread(target=self.update)
         self.file_writer = None
         self.saving = False
-        self.thread_write = Thread(target=self.save_video, args=())
+        self.thread_write = Thread(target=self.save_video)
         if camera.ptz:
             try:
-                print("ptz")
-                self.ptzcam = PTZ()
+                self.ptz_cam = PTZ(
+                    self.camera.ip_address,
+                    login=self.camera.login,
+                    password=self.camera.password,
+                    port=self.camera.port,
+                )
             except:
                 pass
         else:
-            self.ptzcam = None
+            self.ptz_cam = None
 
     def activate(self):
-        print('activate')
+        logger.debug("activate")
         self.set_capture_options()
-        thread = Thread(target=self.connect(), args=())
+        thread = Thread(target=self.connect())
         thread.start()
         thread.join(timeout=30)
         self.live = True
@@ -77,6 +81,7 @@ class VideoCamera(object):
 
     def update(self):
         while self.live:
+            # synchronised version does not work with UDP
             # with self.condition:
             #     if self.new_frame_available:
             #         self.condition.wait()
@@ -88,7 +93,9 @@ class VideoCamera(object):
     def deactivate(self):
         self.live = False
         self.thread.join()
-        print("closing connection with %s %s" % (self.camera.name, self.final_url))
+        logger.debug(
+            "closing connection with %s %s" % (self.camera.name, self.final_url)
+        )
         if self.video is not None:
             self.video.release()
 
@@ -98,6 +105,7 @@ class VideoCamera(object):
         cv2.imwrite("./photos/%s.png" % str(timestamp), frame)
 
     def get_frame_bytes(self):
+        # synchronised version does not work with UDP
         # with self.condition:
         #     if not self.new_frame_available:
         #         self.condition.wait()
@@ -122,9 +130,9 @@ class VideoCamera(object):
 
         size = (frame_width, frame_height)
 
-        self.file_writer = cv2.VideoWriter('{}.avi'.format(filename),
-                                           cv2.VideoWriter_fourcc(*'MJPG'),
-                                           30.0, size)
+        self.file_writer = cv2.VideoWriter(
+            "{}.avi".format(filename), cv2.VideoWriter_fourcc(*"MJPG"), 30.0, size
+        )
         self.thread_write.start()
 
     def stop_recording(self):

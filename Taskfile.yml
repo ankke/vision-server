@@ -12,6 +12,14 @@ tasks:
   run_dev:
     cmds:
       - FLASK_ENV=development DB_HOST=localhost DB_PORT=3306 DB_USER=vision_user DB_PASSWORD=password DB_NAME=vision flask run
+  launch_db:
+    cmds:
+      - docker-compose -f docker-compose.mysql.yml up
+  run_prod:
+      - docker-compose up
   setup_db:
     cmds:
-      - alembic upgrade head
+      - DB_HOST=localhost DB_PORT=3306 DB_USER=vision_user DB_PASSWORD=password DB_NAME=vision alembic upgrade head
+  new_migration:
+    cmds:
+      - DB_HOST=localhost DB_PORT=3306 DB_USER=vision_user DB_PASSWORD=password DB_NAME=vision alembic revision --autogenerate -m "add rows"

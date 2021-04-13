@@ -1,15 +1,18 @@
-from time import sleep
+import logging
 
+from time import sleep
 from onvif import ONVIFCamera
+
+logger = logging.getLogger("root")
 
 
 class PTZ(object):
-    def __init__(self):
-        self.mycam = ONVIFCamera("192.168.0.53", 80, "admin", "AGHspace")
+    def __init__(self, ip_address, login=None, password=None, port=80):
+        self.cam = ONVIFCamera(ip_address, port, login, password)
 
-        self.media = self.mycam.create_media_service()
+        self.media = self.cam.create_media_service()
         self.media_profile = self.media.GetProfiles()[0]
-        self.ptz = self.mycam.create_ptz_service()
+        self.ptz = self.cam.create_ptz_service()
 
         request = self.ptz.create_type("GetConfigurationOptions")
         request.ConfigurationToken = self.media_profile.PTZConfiguration.token
@@ -48,25 +51,25 @@ class PTZ(object):
         self.ptz.Stop({"ProfileToken": self.continuous_move.ProfileToken})
 
     def move_up(self, timeout=0.25):
-        print("move up...")
+        logger.debug("PTZ move up")
         self.continuous_move.Velocity.PanTilt.x = 0
         self.continuous_move.Velocity.PanTilt.y = self.YMAX
         self.perform_move(timeout)
 
     def move_down(self, timeout=0.25):
-        print("move down...")
+        logger.debug("PTZ move down")
         self.continuous_move.Velocity.PanTilt.x = 0
         self.continuous_move.Velocity.PanTilt.y = self.YMIN
         self.perform_move(timeout)
 
     def move_right(self, timeout=0.25):
-        print("move right...")
+        logger.debug("PTZ move right")
         self.continuous_move.Velocity.PanTilt.x = self.XMAX
         self.continuous_move.Velocity.PanTilt.y = 0
         self.perform_move(timeout)
 
     def move_left(self, timeout=0.25):
-        print("move left...")
+        logger.debug("PTZ move left")
         self.continuous_move.Velocity.PanTilt.x = self.XMIN
         self.continuous_move.Velocity.PanTilt.y = 0
         self.perform_move(timeout)
