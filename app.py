@@ -52,6 +52,7 @@ def get_camera(id_):
 
 @app.route("/camera", methods=["POST"])
 def add_camera_():
+    logger.error(request.json)
     new_camera = add_camera(request.json)
     return simplejson.dumps(new_camera, cls=AlchemyEncoder)
 
